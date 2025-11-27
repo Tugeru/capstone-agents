@@ -137,13 +137,21 @@ def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
         print(f"[{agent_name}] Failed: {e}")
 
 
-def find_agent_file(agent_name, agents_dir):
-    """Find the agent file with multiple naming patterns."""
-    possible_files = [
-        os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
-        os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
-        os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
-    ]
+def find_agent_file(agent_name, agents_dir, agent_type="planning"):
+    """Find the agent file based on type (planning or implementation)."""
+    if agent_type == "implementation":
+        # Prioritize implementation file
+        possible_files = [
+            os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
+            os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
+        ]
+    else:
+        # Default: prioritize planning file
+        possible_files = [
+            os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
+            os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
+            os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
+        ]
     
     for p_file in possible_files:
         if os.path.exists(p_file):
@@ -157,8 +165,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Interactive mode - work with designer agent on your project
+  # Interactive planning session
   python run_agents.py -a designer -w /path/to/your/project -i
+  
+  # Interactive implementation session
+  python run_agents.py -a designer -w /path/to/your/project -i --type impl
   
   # Batch mode - auto-run and exit
   python run_agents.py -a backend -w /path/to/project -c gemini
@@ -179,6 +190,9 @@ Examples:
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")
     parser.add_argument("-i", "--interactive", action="store_true",
                         help="Run in interactive mode (stay open for conversation)")
+    parser.add_argument("-t", "--type", default="planning",
+                        choices=["planning", "plan", "p", "implementation", "impl", "i"],
+                        help="Agent type: planning (default) or implementation")
     parser.add_argument("-l", "--list", action="store_true",
                         help="List available agents")
     parser.add_argument("--agents-dir", 
@@ -213,14 +227,18 @@ Examples:
     
     # Get agent to run
     agent_name = args.agent or "coordinator"
-    agent_file = find_agent_file(agent_name, agents_dir)
+    
+    # Normalize agent type
+    agent_type = "implementation" if args.type in ["implementation", "impl", "i"] else "planning"
+    
+    agent_file = find_agent_file(agent_name, agents_dir, agent_type)
     
     if not agent_file:
-        print(f"Error: Agent '{agent_name}' not found.")
+        print(f"Error: Agent '{agent_name}' ({agent_type}) not found.")
         print("Use -l to list available agents.")
         sys.exit(1)
     
-    print(f"Agent: {agent_name}")
+    print(f"Agent: {agent_name} ({agent_type})")
     print(f"Workspace: {workspace}")
     print(f"CLI: {args.cli}")
     print(f"Mode: {'interactive' if args.interactive else 'batch'}")
