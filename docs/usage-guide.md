@@ -13,8 +13,81 @@ cd capstone-agents
 cp .env.example .env
 # Edit .env with your API keys
 
-# 3. Run the Coordinator agent to start
-python scripts/run_agents.py --agents coordinator --cli vscode
+# 3. List available agents
+python scripts/run_agents.py -l
+
+# 4. Run an agent interactively on your project
+python scripts/run_agents.py -a coordinator -w /path/to/your/project -i
+```
+
+---
+
+## Command Cheatsheet
+
+### Quick Reference
+
+```bash
+# List all agents
+python scripts/run_agents.py -l
+
+# Interactive planning session (recommended)
+python scripts/run_agents.py -a <agent> -w <workspace> -i
+
+# Interactive implementation session
+python scripts/run_agents.py -a <agent> -w <workspace> -i -t impl
+
+# Batch mode (auto-run and exit)
+python scripts/run_agents.py -a <agent> -w <workspace>
+
+# Test mode (dry run)
+python scripts/run_agents.py -a <agent> -c test
+```
+
+### Full Command Reference
+
+| Flag | Long Form | Description | Default |
+|------|-----------|-------------|--------|
+| `-a` | `--agent` | Agent to run (designer, frontend, etc.) | coordinator |
+| `-w` | `--workspace` | Path to your project | `.` (current) |
+| `-c` | `--cli` | CLI tool (gemini, cursor, codex, claude, vscode) | gemini |
+| `-i` | `--interactive` | Stay open for conversation | off |
+| `-t` | `--type` | Agent type (planning, impl) | planning |
+| `-l` | `--list` | List available agents | — |
+
+### Agent Type Values
+
+| Value | Loads |
+|-------|-------|
+| `planning`, `plan`, `p` | `*-planning.md` |
+| `implementation`, `impl`, `i` | `*-implementation.md` |
+
+### Examples by Workflow
+
+```bash
+# 1. Start planning with designer
+python scripts/run_agents.py -a designer -w ~/my-app -i
+
+# 2. Switch to implementation
+python scripts/run_agents.py -a designer -w ~/my-app -i -t impl
+
+# 3. Run QA to test
+python scripts/run_agents.py -a qa -w ~/my-app -i
+
+# 4. Generate documentation
+python scripts/run_agents.py -a documentation -w ~/my-app -i -t impl
+```
+
+### Using Bash Scripts
+
+```bash
+# Make scripts executable (first time)
+chmod +x scripts/*.sh
+
+# Launch single agent (interactive)
+./scripts/launch-agent.sh designer /path/to/project gemini
+
+# Launch implementation agent
+./scripts/launch-agent.sh designer /path/to/project gemini impl
 ```
 
 ---
@@ -39,15 +112,28 @@ python scripts/run_agents.py --agents coordinator --cli vscode
 
 ## Running Agents
 
-### Single Agent
-To run a single agent, use the `launch-agent.sh` script:
+### Interactive Mode (Recommended)
+
+Interactive mode keeps the CLI session open so you can have a conversation with the agent:
+
 ```bash
-./scripts/launch-agent.sh coordinator
+# Run planning agent interactively
+python scripts/run_agents.py -a designer -w /path/to/project -i
+
+# Run implementation agent interactively
+python scripts/run_agents.py -a designer -w /path/to/project -i -t impl
 ```
 
-Or use Python directly:
+### Single Agent (Bash)
+To run a single agent using the bash wrapper:
 ```bash
-python scripts/run_agents.py --agents coordinator --cli gemini
+./scripts/launch-agent.sh designer /path/to/project gemini
+```
+
+### Batch Mode
+Batch mode auto-executes and exits (useful for CI/CD):
+```bash
+python scripts/run_agents.py -a backend -w /path/to/project
 ```
 
 ### Multiple Agents
@@ -62,19 +148,18 @@ python scripts/run_agents.py --agents frontend backend designer --cli cursor
 ```
 
 ### CLI Selection
-You can specify which CLI tool to use with the `--cli` flag:
+You can specify which CLI tool to use with the `-c` flag:
 ```bash
-python scripts/run_agents.py --cli cursor --agents designer
+python scripts/run_agents.py -a designer -c cursor -i
 ```
 
 Supported CLIs:
-- `gemini` — Google Gemini CLI
+- `gemini` — Google Gemini CLI (default)
 - `cursor` — Cursor IDE/CLI
-- `qwen` — QwenCLI (Alibaba)
-- `opencodex` — OpenAI Codex CLI
-- `copilot` — GitHub Copilot CLI
-- `robodev` — RoboDev CLI
-- `vscode` — VS Code Copilot (prints instructions)
+- `codex` — OpenAI Codex CLI
+- `claude` — Anthropic Claude CLI
+- `vscode` — VS Code (opens workspace with instructions)
+- `test` — Test mode (dry run, no CLI invoked)
 
 ---
 

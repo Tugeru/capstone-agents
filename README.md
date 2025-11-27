@@ -22,15 +22,27 @@ A fully functional, modular, and workspace-agnostic AI agent repository intended
 3. Run `python scripts/setup_vscode_copilot.py` to configure VS Code.
 
 ### Usage
-Run the agents using the helper script:
+
+List available agents:
 ```bash
-./scripts/run-agents.sh --agents coordinator
+python scripts/run_agents.py -l
 ```
 
-Or use the Python script directly:
+Run an agent interactively on your project:
 ```bash
-python scripts/run_agents.py --agents frontend backend
+# Planning agent (default)
+python scripts/run_agents.py -a designer -w /path/to/your/project -i
+
+# Implementation agent
+python scripts/run_agents.py -a designer -w /path/to/your/project -i -t impl
 ```
+
+Or use the bash wrapper:
+```bash
+./scripts/launch-agent.sh designer /path/to/project gemini
+```
+
+See [Usage Guide](docs/usage-guide.md) for the full command cheatsheet.
 
 ## VS Code Copilot Integration
 See [VS Code Copilot Guide](docs/vscode-copilot-guide.md) for detailed instructions.
