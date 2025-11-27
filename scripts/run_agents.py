@@ -2,8 +2,10 @@ import argparse
 import os
 import subprocess
 import sys
-import time
 from concurrent.futures import ThreadPoolExecutor
+
+# Path to the capstone-agents repository (where agent definitions live)
+CAPSTONE_AGENTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def read_agent_file(agent_file):
@@ -16,58 +18,96 @@ def read_agent_file(agent_file):
         return None
 
 
-def run_agent(agent_name, agent_file, cli_tool, workspace):
-    print(f"[{agent_name}] Launching using {cli_tool}...")
+def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
+    """Run an agent in interactive mode - gives you full control of the CLI."""
+    print(f"[{agent_name}] Launching interactive session...")
+    print(f"[{agent_name}] Workspace: {workspace}")
+    print(f"[{agent_name}] Agent: {agent_file}")
+    print("-" * 60)
     
-    # Read the agent file content for CLIs that need it
     agent_content = read_agent_file(agent_file)
-    if agent_content is None and cli_tool in ["gemini", "qwen", "opencodex"]:
+    if agent_content is None:
         print(f"[{agent_name}] Failed to read agent file.")
         return
     
-    # Construct command based on CLI tool
     cmd = []
-    use_shell = False
     
     if cli_tool == "gemini":
-        # Gemini CLI: use positional query (one-shot mode) with --yolo for auto-approval
-        # This runs the prompt and exits automatically when complete
-        prompt = f"You are an AI agent. Read and follow the instructions in this file: {agent_file}\n\nAgent instructions:\n{agent_content[:2000]}"
-        cmd = ["gemini", "--yolo", prompt]
+        # Gemini CLI: interactive mode with agent context
+        prompt = f"You are an AI agent. Read and follow the instructions below. Work in this workspace: {workspace}\n\nAgent instructions:\n{agent_content}"
+        cmd = ["gemini", "-i", prompt]
         
     elif cli_tool == "cursor":
-        # Cursor: open the workspace with the agent file
-        cmd = ["cursor", workspace, "--goto", agent_file]
+        # Cursor: open the workspace
+        cmd = ["cursor", workspace]
+        print(f"[{agent_name}] Cursor will open. Use Ctrl+I to open Composer.")
+        print(f"[{agent_name}] Paste the agent instructions from: {agent_file}")
         
-    elif cli_tool == "qwen":
-        # Qwen CLI (DashScope): use the prompt flag
+    elif cli_tool == "codex":
+        # OpenAI Codex CLI
         prompt = f"You are an AI agent. Follow these instructions:\n\n{agent_content}"
-        cmd = ["qwen", "--prompt", prompt]
-        
-    elif cli_tool == "opencodex":
-        # OpenCodex CLI: use prompt with agent instructions
-        prompt = f"Follow these agent instructions:\n\n{agent_content}"
         cmd = ["codex", prompt]
         
+    elif cli_tool == "claude":
+        # Claude CLI
+        prompt = f"You are an AI agent. Follow these instructions:\n\n{agent_content}"
+        cmd = ["claude", prompt]
+        
     elif cli_tool == "vscode":
-        # For VS Code, print instructions for manual setup
+        # VS Code: open workspace and show instructions
         print(f"[{agent_name}] === VS Code Copilot Instructions ===")
-        print(f"[{agent_name}] 1. Open VS Code in workspace: {workspace}")
-        print(f"[{agent_name}] 2. Open Copilot Chat (Ctrl+Shift+I)")
-        print(f"[{agent_name}] 3. Copy and paste the agent file content:")
+        print(f"[{agent_name}] 1. Open Copilot Chat (Ctrl+Shift+I)")
+        print(f"[{agent_name}] 2. Paste the agent file content from:")
         print(f"[{agent_name}]    {agent_file}")
-        print(f"[{agent_name}] 4. Or use @workspace with the agent instructions")
+        print(f"[{agent_name}] 3. Or use @workspace with the agent instructions")
+        cmd = ["code", workspace]
+        
+    else:
+        print(f"[{agent_name}] CLI '{cli_tool}' not supported for interactive mode.")
         return
+
+    try:
+        # Run interactively - subprocess.run gives the CLI full terminal control
+        subprocess.run(cmd, cwd=workspace)
+    except FileNotFoundError:
+        print(f"[{agent_name}] CLI tool '{cmd[0]}' not found. Is it installed and in PATH?")
+    except KeyboardInterrupt:
+        print(f"\n[{agent_name}] Session ended.")
+    except Exception as e:
+        print(f"[{agent_name}] Failed to start: {e}")
+
+
+def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
+    """Run an agent in batch mode - auto-executes and exits."""
+    print(f"[{agent_name}] Launching batch mode using {cli_tool}...")
+    
+    agent_content = read_agent_file(agent_file)
+    if agent_content is None:
+        print(f"[{agent_name}] Failed to read agent file.")
+        return
+    
+    cmd = []
+    
+    if cli_tool == "gemini":
+        # Gemini CLI: one-shot mode with auto-approval
+        prompt = f"You are an AI agent. Work in workspace: {workspace}\n\nAgent instructions:\n{agent_content[:2000]}"
+        cmd = ["gemini", "--yolo", prompt]
+        
+    elif cli_tool == "codex":
+        # OpenAI Codex CLI: full-auto mode
+        prompt = f"Follow these agent instructions:\n\n{agent_content}"
+        cmd = ["codex", "--approval-mode", "full-auto", prompt]
         
     elif cli_tool == "test":
         # Test mode: just echo what would run
         print(f"[{agent_name}] TEST MODE - Would run agent from: {agent_file}")
-        print(f"[{agent_name}] Agent content preview: {agent_content[:200] if agent_content else 'N/A'}...")
+        print(f"[{agent_name}] Workspace: {workspace}")
+        print(f"[{agent_name}] Preview: {agent_content[:300] if agent_content else 'N/A'}...")
         return
         
     else:
-        # Default fallback
-        cmd = ["echo", f"Running {agent_name} from {agent_file}"]
+        print(f"[{agent_name}] CLI '{cli_tool}' not supported for batch mode. Use -i for interactive.")
+        return
 
     try:
         print(f"[{agent_name}] Executing: {cmd[0]} ...")
@@ -76,10 +116,9 @@ def run_agent(agent_name, agent_file, cli_tool, workspace):
             cwd=workspace, 
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE, 
-            text=True,
-            shell=use_shell
+            text=True
         )
-        stdout, stderr = process.communicate(timeout=300)  # 5 minute timeout
+        stdout, stderr = process.communicate(timeout=600)
         
         if stdout:
             print(f"[{agent_name}] OUTPUT:\n{stdout}")
@@ -87,67 +126,111 @@ def run_agent(agent_name, agent_file, cli_tool, workspace):
             print(f"[{agent_name}] ERROR:\n{stderr}")
         
         if process.returncode != 0:
-            print(f"[{agent_name}] Process exited with code: {process.returncode}")
+            print(f"[{agent_name}] Exited with code: {process.returncode}")
             
     except subprocess.TimeoutExpired:
-        print(f"[{agent_name}] Process timed out after 5 minutes")
+        print(f"[{agent_name}] Timed out after 10 minutes")
         process.kill()
     except FileNotFoundError:
         print(f"[{agent_name}] CLI tool '{cmd[0]}' not found. Is it installed and in PATH?")
     except Exception as e:
-        print(f"[{agent_name}] Failed to start: {e}")
+        print(f"[{agent_name}] Failed: {e}")
+
+
+def find_agent_file(agent_name, agents_dir):
+    """Find the agent file with multiple naming patterns."""
+    possible_files = [
+        os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
+        os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
+        os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
+    ]
+    
+    for p_file in possible_files:
+        if os.path.exists(p_file):
+            return p_file
+    return None
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Capstone Agents Runner")
-    parser.add_argument("--workspace", default=".", help="Path to the workspace")
-    parser.add_argument("--cli", default="gemini", choices=["gemini", "cursor", "qwen", "opencodex", "vscode", "test"], help="CLI tool to use")
-    parser.add_argument("--agents", nargs="+", help="Specific agents to run (e.g. frontend backend)")
+    parser = argparse.ArgumentParser(
+        description="Capstone Agents Runner - Load AI agents into CLI tools",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Interactive mode - work with designer agent on your project
+  python run_agents.py -a designer -w /path/to/your/project -i
+  
+  # Batch mode - auto-run and exit
+  python run_agents.py -a backend -w /path/to/project -c gemini
+  
+  # List available agents
+  python run_agents.py -l
+  
+  # Test mode
+  python run_agents.py -a coordinator -c test
+        """
+    )
+    parser.add_argument("-w", "--workspace", default=".", 
+                        help="Path to YOUR project workspace (where the agent will work)")
+    parser.add_argument("-c", "--cli", default="gemini", 
+                        choices=["gemini", "cursor", "codex", "claude", "vscode", "test"],
+                        help="CLI tool to use (default: gemini)")
+    parser.add_argument("-a", "--agent", 
+                        help="Agent to run (e.g., designer, frontend, backend, coordinator)")
+    parser.add_argument("-i", "--interactive", action="store_true",
+                        help="Run in interactive mode (stay open for conversation)")
+    parser.add_argument("-l", "--list", action="store_true",
+                        help="List available agents")
+    parser.add_argument("--agents-dir", 
+                        help="Custom path to agents directory")
     
     args = parser.parse_args()
+    
+    # Determine agents directory
+    if args.agents_dir:
+        agents_dir = os.path.abspath(args.agents_dir)
+    else:
+        agents_dir = os.path.join(CAPSTONE_AGENTS_DIR, "agents")
+    
+    # List agents if requested
+    if args.list:
+        print("Available agents:")
+        if os.path.exists(agents_dir):
+            for agent in sorted(os.listdir(agents_dir)):
+                agent_path = os.path.join(agents_dir, agent)
+                if os.path.isdir(agent_path):
+                    print(f"  - {agent}")
+        else:
+            print(f"  Agents directory not found: {agents_dir}")
+        return
+    
     workspace = os.path.abspath(args.workspace)
     
-    print(f"Starting Capstone Agents in {workspace} using {args.cli}...")
-    
-    agents_dir = os.path.join(workspace, "agents")
     if not os.path.exists(agents_dir):
-        print(f"Error: agents directory not found in {workspace}")
+        print(f"Error: Agents directory not found: {agents_dir}")
+        print("Use --agents-dir to specify the path to your agents folder.")
         sys.exit(1)
-
-    # Discover agents
-    agents_to_run = []
-    if args.agents:
-        for a in args.agents:
-            # Try to find agent file with multiple naming patterns
-            possible_files = [
-                os.path.join(agents_dir, a, f"{a}-planning.md"),
-                os.path.join(agents_dir, a, f"{a}.md"),
-                os.path.join(agents_dir, a, f"{a}-implementation.md"),
-            ]
-            
-            for p_file in possible_files:
-                if os.path.exists(p_file):
-                    agents_to_run.append((a, p_file))
-                    break
-            else:
-                print(f"Warning: No agent file found for '{a}'")
-    else:
-        # Run Coordinator by default if exists
-        coord_file = os.path.join(agents_dir, "coordinator", "coordinator.md")
-        if os.path.exists(coord_file):
-            agents_to_run.append(("coordinator", coord_file))
     
-    if not agents_to_run:
-        print("No agents found to run.")
+    # Get agent to run
+    agent_name = args.agent or "coordinator"
+    agent_file = find_agent_file(agent_name, agents_dir)
+    
+    if not agent_file:
+        print(f"Error: Agent '{agent_name}' not found.")
+        print("Use -l to list available agents.")
         sys.exit(1)
+    
+    print(f"Agent: {agent_name}")
+    print(f"Workspace: {workspace}")
+    print(f"CLI: {args.cli}")
+    print(f"Mode: {'interactive' if args.interactive else 'batch'}")
+    print("=" * 60)
+    
+    if args.interactive:
+        run_agent_interactive(agent_name, agent_file, args.cli, workspace)
+    else:
+        run_agent_batch(agent_name, agent_file, args.cli, workspace)
 
-    # Run in parallel
-    with ThreadPoolExecutor(max_workers=len(agents_to_run)) as executor:
-        futures = [executor.submit(run_agent, name, path, args.cli, workspace) for name, path in agents_to_run]
-        
-        for future in futures:
-            future.result()
-
-    print("All agents finished.")
 
 if __name__ == "__main__":
     main()
