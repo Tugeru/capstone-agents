@@ -30,10 +30,10 @@ def run_agent(agent_name, agent_file, cli_tool, workspace):
     use_shell = False
     
     if cli_tool == "gemini":
-        # Gemini CLI: use positional prompt with instruction to read the agent file
-        # For interactive mode with agent context
+        # Gemini CLI: use positional query (one-shot mode) with --yolo for auto-approval
+        # This runs the prompt and exits automatically when complete
         prompt = f"You are an AI agent. Read and follow the instructions in this file: {agent_file}\n\nAgent instructions:\n{agent_content[:2000]}"
-        cmd = ["gemini", "-i", prompt]
+        cmd = ["gemini", "--yolo", prompt]
         
     elif cli_tool == "cursor":
         # Cursor: open the workspace with the agent file
