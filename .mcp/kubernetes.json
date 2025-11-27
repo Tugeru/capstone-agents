@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kubernetes": {
+      "command": "kubectl",
+      "args": ["config", "view"]
+    }
+  }
+}

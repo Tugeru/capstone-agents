@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "time": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-time"],
+      "description": "Time utilities for scheduling, timestamps, and timezone handling"
+    }
+  }
+}

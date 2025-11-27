@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "plantuml": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-plantuml"],
+      "description": "Generate PlantUML diagrams (UML class, sequence, component, use case)"
+    }
+  }
+}

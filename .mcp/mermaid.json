@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mermaid": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-mermaid"],
+      "description": "Generate Mermaid diagrams (flowcharts, sequence, ER, architecture)"
+    }
+  }
+}

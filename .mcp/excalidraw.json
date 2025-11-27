@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "excalidraw": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-excalidraw"],
+      "description": "Create hand-drawn style diagrams and whiteboard sketches"
+    }
+  }
+}

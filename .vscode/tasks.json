@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Coordinator Agent",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/run_agents.py", "--agents", "coordinator", "--cli", "vscode"],
+            "group": "build",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Run Frontend Agent",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/run_agents.py", "--agents", "frontend", "--cli", "vscode"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Backend Agent",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/run_agents.py", "--agents", "backend", "--cli", "vscode"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run All Planning Agents",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/run_agents.py", "--agents", "coordinator", "frontend", "backend", "designer", "devops", "--cli", "vscode"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Validate All Agents",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/validate-agent.py", "."],
+            "group": "test",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always"
+            }
+        },
+        {
+            "label": "Generate New Agent",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/generate-agent.py", "."],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Setup VS Code Copilot",
+            "type": "shell",
+            "command": "python",
+            "args": ["scripts/setup_vscode_copilot.py", "."],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

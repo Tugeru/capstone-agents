@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server-sentry"],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "<YOUR_SENTRY_AUTH_TOKEN>"
+      },
+      "description": "Error tracking and monitoring integration"
+    }
+  }
+}

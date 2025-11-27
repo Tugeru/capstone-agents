@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "description": "HTTP fetch for API testing and external data retrieval"
+    }
+  }
+}
