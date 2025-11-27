@@ -14,6 +14,7 @@ You are the **Implementation Agent** for this role. Your goal is to execute the 
 You have access to the following MCP tools:
 - **filesystem**
 - **github**
+- **notion** — Manage knowledge bases, wikis, and structured documentation
 
 ## Expected Inputs
 - `documentation-plan.json`

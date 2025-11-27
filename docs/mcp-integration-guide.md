@@ -27,6 +27,7 @@ MCP (Model Context Protocol) enables AI agents to interact with external tools a
 | **time** | Scheduling and timezone utilities | Coordinator, PM |
 | **slack** | Team communication | Coordinator, PM |
 | **sentry** | Error tracking and monitoring | DevOps, QA |
+| **notion** | Knowledge base and project documentation | Documentation, PM, Coordinator, Architect |
 
 ## Configuration Files
 
@@ -50,7 +51,8 @@ MCP configurations are stored in the `.mcp/` directory:
 ├── sequential-thinking.json  # Reasoning chains
 ├── time.json            # Time utilities
 ├── slack.json           # Slack messaging
-└── sentry.json          # Error tracking
+├── sentry.json          # Error tracking
+└── notion.json          # Notion knowledge base
 ```
 
 ## Setting Up MCP Servers
@@ -424,6 +426,44 @@ npx -y @sentry/mcp-server-sentry
   }
 }
 ```
+
+### 15. Notion MCP
+
+Knowledge base and project documentation management.
+
+**Best For**: Documentation, Project Manager, Coordinator, Software Architect
+
+**Setup**:
+1. Create a Notion integration at https://www.notion.so/my-integrations
+2. Copy the Internal Integration Secret
+3. Share your Notion pages/databases with the integration
+
+```bash
+export NOTION_API_KEY=secret_xxxxxxxxxxxx
+npx -y @notionhq/notion-mcp-server
+```
+
+**Configuration** (`.mcp/notion.json`):
+```json
+{
+  "mcpServers": {
+    "notion": {
+      "command": "npx",
+      "args": ["-y", "@notionhq/notion-mcp-server"],
+      "env": {
+        "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer ${NOTION_API_KEY}\", \"Notion-Version\": \"2022-06-28\"}"
+      }
+    }
+  }
+}
+```
+
+**Use Cases**:
+- Create and manage project wikis
+- Store Architecture Decision Records (ADRs)
+- Manage team meeting notes
+- Track project tasks in databases
+- Maintain knowledge bases for documentation
 
 ## Using MCP in Agent Prompts
 
