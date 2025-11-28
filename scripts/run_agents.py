@@ -38,9 +38,14 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         cmd = ["gemini", "-i", prompt]
         
     elif cli_tool == "cursor":
-        # Cursor: open the workspace
+        # Cursor Agent CLI (cursor-agent command)
+        prompt = f"You are an AI agent. Read and follow the instructions below. Work in this workspace: {workspace}\n\nAgent instructions:\n{agent_content}"
+        cmd = ["cursor-agent", prompt]
+        
+    elif cli_tool == "cursor-ide":
+        # Cursor IDE: open the workspace (not CLI)
         cmd = ["cursor", workspace]
-        print(f"[{agent_name}] Cursor will open. Use Ctrl+I to open Composer.")
+        print(f"[{agent_name}] Cursor IDE will open. Use Ctrl+I to open Composer.")
         print(f"[{agent_name}] Paste the agent instructions from: {agent_file}")
         
     elif cli_tool == "codex":
@@ -184,7 +189,7 @@ Examples:
     parser.add_argument("-w", "--workspace", default=".", 
                         help="Path to YOUR project workspace (where the agent will work)")
     parser.add_argument("-c", "--cli", default="gemini", 
-                        choices=["gemini", "cursor", "codex", "claude", "vscode", "test"],
+                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "vscode", "test"],
                         help="CLI tool to use (default: gemini)")
     parser.add_argument("-a", "--agent", 
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")
