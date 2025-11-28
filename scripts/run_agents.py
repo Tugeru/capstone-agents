@@ -25,21 +25,21 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
     print(f"[{agent_name}] Agent: {agent_file}")
     print("-" * 60)
     
-    agent_content = read_agent_file(agent_file)
-    if agent_content is None:
-        print(f"[{agent_name}] Failed to read agent file.")
+    # Verify agent file exists
+    if not os.path.exists(agent_file):
+        print(f"[{agent_name}] Agent file not found: {agent_file}")
         return
     
     cmd = []
     
     if cli_tool == "gemini":
         # Gemini CLI: interactive mode with agent context
-        prompt = f"You are an AI agent. Read and follow the instructions below. Work in this workspace: {workspace}\n\nAgent instructions:\n{agent_content}"
+        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from this file: {agent_file}"
         cmd = ["gemini", "-i", prompt]
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        prompt = f"You are an AI agent. Read and follow the instructions below. Work in this workspace: {workspace}\n\nAgent instructions:\n{agent_content}"
+        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from this file: {agent_file}"
         cmd = ["cursor-agent", prompt]
         
     elif cli_tool == "cursor-ide":
@@ -50,12 +50,12 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "codex":
         # OpenAI Codex CLI
-        prompt = f"You are an AI agent. Follow these instructions:\n\n{agent_content}"
+        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from: {agent_file}"
         cmd = ["codex", prompt]
         
     elif cli_tool == "claude":
         # Claude CLI
-        prompt = f"You are an AI agent. Follow these instructions:\n\n{agent_content}"
+        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from: {agent_file}"
         cmd = ["claude", prompt]
         
     elif cli_tool == "vscode":
@@ -72,8 +72,8 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         return
 
     try:
-        # Run interactively - subprocess.run gives the CLI full terminal control
-        subprocess.run(cmd, cwd=workspace)
+        # Run interactively - explicit stdin/stdout/stderr for proper TTY handling
+        subprocess.run(cmd, cwd=workspace, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr)
     except FileNotFoundError:
         print(f"[{agent_name}] CLI tool '{cmd[0]}' not found. Is it installed and in PATH?")
     except KeyboardInterrupt:
