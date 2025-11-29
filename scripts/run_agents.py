@@ -4,6 +4,14 @@ import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
+# PTY support for TUI-based CLIs (Unix/Mac/WSL)
+HAS_PTY = False
+try:
+    import pty
+    HAS_PTY = True
+except ImportError:
+    pass  # Windows native doesn't have pty module
+
 # Path to the capstone-agents repository (where agent definitions live)
 CAPSTONE_AGENTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -39,9 +47,28 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        # Use short prompt to avoid terminal buffer issues
+        # cursor-agent uses a TUI that requires proper PTY terminal control
         prompt = f"Read @{agent_file} and act as the {agent_name} agent. Workspace: {workspace}"
-        cmd = ["cursor-agent", prompt]
+        
+        if HAS_PTY:
+            # Unix/Mac/WSL: Use PTY for proper terminal emulation
+            print(f"[{agent_name}] Starting cursor-agent with PTY...")
+            original_dir = os.getcwd()
+            os.chdir(workspace)
+            try:
+                pty.spawn(["cursor-agent", prompt])
+            except FileNotFoundError:
+                print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
+            except Exception as e:
+                print(f"[{agent_name}] PTY spawn failed: {e}")
+            finally:
+                os.chdir(original_dir)
+            return  # Early return - pty.spawn handles everything
+        else:
+            # Fallback for Windows native (TUI may not work correctly)
+            print(f"[{agent_name}] PTY not available - cursor-agent TUI may not work correctly")
+            print(f"[{agent_name}] Consider using WSL or cursor-ide instead")
+            cmd = ["cursor-agent", prompt]
         
     elif cli_tool == "cursor-ide":
         # Cursor IDE: open the workspace (not CLI)
