@@ -27,6 +27,39 @@ def read_agent_file(agent_file):
         return None
 
 
+def copy_to_clipboard(text):
+    """Copy text to system clipboard."""
+    import platform
+    system = platform.system()
+    
+    # Detect WSL (Windows Subsystem for Linux)
+    is_wsl = False
+    if system == "Linux":
+        try:
+            with open("/proc/version", "r") as f:
+                is_wsl = "microsoft" in f.read().lower()
+        except Exception:
+            pass
+    
+    try:
+        if system == "Darwin":  # macOS
+            subprocess.run(["pbcopy"], input=text.encode(), check=True)
+        elif system == "Linux" and is_wsl:
+            # WSL: use Windows clip.exe
+            subprocess.run(["clip.exe"], input=text.encode(), check=True)
+        elif system == "Linux":
+            # Native Linux: try xclip first, then xsel
+            try:
+                subprocess.run(["xclip", "-selection", "clipboard"], input=text.encode(), check=True)
+            except FileNotFoundError:
+                subprocess.run(["xsel", "--clipboard", "--input"], input=text.encode(), check=True)
+        elif system == "Windows":
+            subprocess.run(["clip"], input=text.encode(), check=True, shell=True)
+        return True
+    except Exception:
+        return False
+
+
 def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
     """Run an agent in interactive mode - gives you full control of the CLI."""
     print(f"[{agent_name}] Launching interactive session...")
@@ -61,12 +94,29 @@ Begin your workflow."""
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
         # Note: cursor-agent is a TUI tool without headless mode
-        # We launch it directly and instruct user to load agent context
+        # We copy agent instructions to clipboard for easy pasting
+        agent_content = read_agent_file(agent_file)
+        if agent_content is None:
+            print(f"[{agent_name}] Failed to read agent file.")
+            return
+        
+        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        
+        clipboard_success = copy_to_clipboard(prompt)
+        
         print(f"[{agent_name}] Starting cursor-agent...")
-        print(f"[{agent_name}] ")
-        print(f"[{agent_name}] >>> To load agent instructions, type in the chat:")
-        print(f"[{agent_name}]     @{agent_file} follow these instructions")
-        print(f"[{agent_name}] ")
+        if clipboard_success:
+            print(f"[{agent_name}] Agent instructions copied to clipboard!")
+            print(f"[{agent_name}] >>> Paste with Ctrl+V (or Cmd+V) in the chat")
+        else:
+            print(f"[{agent_name}] Could not copy to clipboard. Manual load:")
+            print(f"[{agent_name}]     @{agent_file} follow these instructions")
         print("-" * 60)
         
         os.chdir(workspace)
