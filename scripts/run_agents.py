@@ -47,31 +47,22 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        # cursor-agent has a TUI bug with long prompts - use minimal prompt
-        # and print the file reference for user to copy
-        prompt = f"Act as {agent_name} agent"
+        # cursor-agent has a React/Ink TUI that doesn't work well with PTY
+        # Use os.execvp to completely replace this process with cursor-agent
+        print(f"[{agent_name}] Starting cursor-agent...")
+        print(f"[{agent_name}] TIP: Reference agent file in chat with:")
+        print(f"[{agent_name}]   @{agent_file}")
+        print("-" * 60)
         
-        if HAS_PTY:
-            # Unix/Mac/WSL: Use PTY for proper terminal emulation
-            print(f"[{agent_name}] Starting cursor-agent with PTY...")
-            print(f"[{agent_name}] TIP: Reference agent file in chat with:")
-            print(f"[{agent_name}]   @{agent_file}")
-            original_dir = os.getcwd()
-            os.chdir(workspace)
-            try:
-                pty.spawn(["cursor-agent", prompt])
-            except FileNotFoundError:
-                print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
-            except Exception as e:
-                print(f"[{agent_name}] PTY spawn failed: {e}")
-            finally:
-                os.chdir(original_dir)
-            return  # Early return - pty.spawn handles everything
-        else:
-            # Fallback for Windows native (TUI may not work correctly)
-            print(f"[{agent_name}] PTY not available - cursor-agent TUI may not work correctly")
-            print(f"[{agent_name}] Consider using WSL or cursor-ide instead")
-            cmd = ["cursor-agent", prompt]
+        os.chdir(workspace)
+        try:
+            # execvp replaces this process entirely - gives cursor-agent full terminal control
+            os.execvp("cursor-agent", ["cursor-agent"])
+        except FileNotFoundError:
+            print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
+        except Exception as e:
+            print(f"[{agent_name}] Failed to start cursor-agent: {e}")
+        return  # Only reached if execvp fails
         
     elif cli_tool == "cursor-ide":
         # Cursor IDE: open the workspace (not CLI)
