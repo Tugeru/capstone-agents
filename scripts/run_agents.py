@@ -67,22 +67,37 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
             return
         
         print(f"[{agent_name}] Starting GitHub Copilot CLI session...")
-        print(f"[{agent_name}] Loading agent instructions into session...")
         if sys.platform == "win32":
             print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
         
         # Pass agent instructions as initial prompt
-        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions completely:
+        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
 
 {agent_content}
 
 ---
-You are now the {agent_name} agent. Respond to all future messages according to your role, responsibilities, and workflow defined above.
-Working directory: {workspace}
-
-Confirm you understand your role by briefly stating who you are and your key responsibilities."""
+You are now the {agent_name} agent. Working directory: {workspace}
+Confirm your role briefly."""
         
-        cmd = ["copilot", "-p", initial_prompt]
+        # Step 1: Initialize agent context with one-shot prompt
+        print(f"[{agent_name}] Initializing agent context...")
+        try:
+            subprocess.run(
+                ["copilot", "-p", initial_prompt],
+                cwd=workspace,
+                stdin=sys.stdin,
+                stdout=sys.stdout,
+                stderr=sys.stderr
+            )
+        except Exception as e:
+            print(f"[{agent_name}] Failed to initialize: {e}")
+            return
+        
+        # Step 2: Continue with interactive session
+        print("-" * 60)
+        print(f"[{agent_name}] Continuing interactive session (Ctrl+C to exit)...")
+        print("-" * 60)
+        cmd = ["copilot", "--continue"]
         
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
