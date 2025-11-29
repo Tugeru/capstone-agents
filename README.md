@@ -54,11 +54,13 @@ For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, VS Code Cop
 - [Architecture](docs/architecture.md)
 
 ## Integration Guides
+- [Gemini CLI Integration](Integration/gemini/README.md) - run Capstone agents via the Gemini CLI.
 - [Cursor IDE Multi-Agent Integration](Integration/cursor-ide/README.md) - import all Capstone agents as switchable roles inside Cursor.
 - [Cursor CLI Integration](Integration/cursor-cli/) - use Capstone agents with the Cursor terminal agent.
 - [OpenCodex CLI Integration](Integration/opencodex/README.md) - run agents via the OpenAI Codex CLI.
-- [QwenCLI Integration](Integration/qwencli/) - use QwenCLI with Capstone agents.
+- [Qwen CLI Integration (QwenCLI)](Integration/qwencli/) - use QwenCLI with Capstone agents.
 - [RoboDev Integration](Integration/robodev/README.md) - connect Capstone agents with RoboDev profiles.
+- [GitHub Copilot CLI Integration](Integration/copilot/README.md) - use Capstone agents with the standalone Copilot CLI.
 - [VS Code Copilot Integration](Integration/vscode-copilot/README.md) - configure VS Code for Capstone agent workflows.
 
 ## License

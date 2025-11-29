@@ -37,14 +37,14 @@ copilot
 ### Via run_agents.py Script
 
 ```bash
-# Interactive planning session
-python scripts/run_agents.py -c copilot-cli -a coordinator -i
+# Interactive planning session (planning agent)
+python scripts/run_agents.py -a coordinator -c copilot-cli -w /path/to/your/project -i -t p
 
-# Interactive implementation session  
-python scripts/run_agents.py -c copilot-cli -a frontend -i -t impl
+# Interactive implementation session (implementation agent)
+python scripts/run_agents.py -a frontend -c copilot-cli -w /path/to/your/project -i -t impl
 
 # Batch mode (programmatic execution)
-python scripts/run_agents.py -c copilot-cli -a backend
+python scripts/run_agents.py -a backend -c copilot-cli -w /path/to/your/project -t impl
 ```
 
 ### Direct Copilot CLI Usage

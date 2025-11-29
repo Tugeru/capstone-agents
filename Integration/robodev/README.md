@@ -26,11 +26,11 @@ This guide explains how to use Capstone Agents with [RoboDev CLI](https://github
 # Navigate to your workspace
 cd /path/to/your/project
 
-# Run the coordinator agent
-python scripts/run_agents.py --cli robodev --agents coordinator
+# Planning session with coordinator (planning agent)
+python scripts/run_agents.py -a coordinator -c robodev -w /path/to/your/project -i -t p
 
-# Run multiple agents
-python scripts/run_agents.py --cli robodev --agents frontend backend designer
+# Implementation session with frontend (implementation agent)
+python scripts/run_agents.py -a frontend -c robodev -w /path/to/your/project -i -t impl
 ```
 
 ### Direct RoboDev CLI Usage

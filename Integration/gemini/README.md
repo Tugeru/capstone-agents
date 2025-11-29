@@ -24,8 +24,11 @@ This guide explains how to use Capstone Agents with [Gemini CLI](https://github.
 # Navigate to your workspace
 cd /path/to/your/project
 
-# Run the coordinator agent
-python scripts/run_agents.py --cli gemini --agents coordinator
+# Planning session with coordinator (planning agent)
+python scripts/run_agents.py -a coordinator -c gemini -w /path/to/your/project -i -t p
+
+# Implementation session with frontend (implementation agent)
+python scripts/run_agents.py -a frontend -c gemini -w /path/to/your/project -i -t impl
 
 # Or use the bash wrapper
 ./scripts/launch-agent.sh coordinator . gemini
@@ -34,7 +37,13 @@ python scripts/run_agents.py --cli gemini --agents coordinator
 ### Running Multiple Agents
 
 ```bash
-python scripts/run_agents.py --cli gemini --agents frontend backend designer
+# Run multiple agents in separate terminals/tabs
+python scripts/run_agents.py -a frontend -c gemini -w /path/to/your/project -i -t impl
+python scripts/run_agents.py -a backend -c gemini -w /path/to/your/project -i -t impl
+python scripts/run_agents.py -a designer -c gemini -w /path/to/your/project -i -t p
+
+# Or use the multi-agent shell script (see docs/usage-guide.md)
+./scripts/run-agents.sh --agents frontend backend designer --cli gemini
 ```
 
 ### Direct Gemini CLI Usage

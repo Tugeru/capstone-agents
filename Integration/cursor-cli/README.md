@@ -21,11 +21,11 @@ This guide explains how to use Capstone Agents with [Cursor CLI](https://cursor.
 # Navigate to your workspace
 cd /path/to/your/project
 
-# Run the coordinator agent
-python scripts/run_agents.py --cli cursor --agents coordinator
+# Planning session with coordinator (planning agent)
+python scripts/run_agents.py -a coordinator -c cursor -w /path/to/your/project -i -t p
 
-# Run multiple agents
-python scripts/run_agents.py --cli cursor --agents frontend backend
+# Implementation session with frontend (implementation agent)
+python scripts/run_agents.py -a frontend -c cursor -w /path/to/your/project -i -t impl
 ```
 
 ### Direct Cursor CLI Usage

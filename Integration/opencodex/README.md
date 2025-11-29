@@ -24,11 +24,11 @@ This guide explains how to use Capstone Agents with [OpenCodex CLI](https://gith
 # Navigate to your workspace
 cd /path/to/your/project
 
-# Run the coordinator agent
-python scripts/run_agents.py --cli opencodex --agents coordinator
+# Planning session with coordinator (planning agent)
+python scripts/run_agents.py -a coordinator -c codex -w /path/to/your/project -i -t p
 
-# Run multiple agents in parallel
-python scripts/run_agents.py --cli opencodex --agents frontend backend designer
+# Implementation session with frontend (implementation agent)
+python scripts/run_agents.py -a frontend -c codex -w /path/to/your/project -i -t impl
 ```
 
 ### Direct OpenCodex CLI Usage

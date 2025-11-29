@@ -26,11 +26,11 @@ This guide explains how to use Capstone Agents with [QwenCLI](https://github.com
 # Navigate to your workspace
 cd /path/to/your/project
 
-# Run the coordinator agent
-python scripts/run_agents.py --cli qwen --agents coordinator
+# Planning session with coordinator (planning agent)
+python scripts/run_agents.py -a coordinator -c qwen -w /path/to/your/project -i -t p
 
-# Run multiple agents
-python scripts/run_agents.py --cli qwen --agents frontend backend designer
+# Implementation session with frontend (implementation agent)
+python scripts/run_agents.py -a frontend -c qwen -w /path/to/your/project -i -t impl
 ```
 
 ### Direct QwenCLI Usage
