@@ -46,8 +46,6 @@ See [Usage Guide](docs/usage-guide.md) for the full command cheatsheet.
 
 For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
 
-## VS Code Copilot Integration
-See [VS Code Copilot Guide](docs/vscode-copilot-guide.md) for detailed instructions.
 
 ## Documentation
 - [Usage Guide](docs/usage-guide.md)
