@@ -175,8 +175,12 @@ Confirm your role briefly."""
                 cwd=workspace,
                 stdin=sys.stdin,
                 stdout=sys.stdout,
-                stderr=sys.stderr
+                stderr=sys.stderr,
+                check=True
             )
+        except subprocess.CalledProcessError as e:
+            print(f"[{agent_name}] Initialization failed with exit code {e.returncode}")
+            return
         except Exception as e:
             print(f"[{agent_name}] Failed to initialize: {e}")
             return
