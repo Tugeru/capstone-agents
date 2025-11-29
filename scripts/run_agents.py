@@ -47,12 +47,15 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        # cursor-agent uses a TUI that requires proper PTY terminal control
-        prompt = f"Read @{agent_file} and act as the {agent_name} agent. Workspace: {workspace}"
+        # cursor-agent has a TUI bug with long prompts - use minimal prompt
+        # and print the file reference for user to copy
+        prompt = f"Act as {agent_name} agent"
         
         if HAS_PTY:
             # Unix/Mac/WSL: Use PTY for proper terminal emulation
             print(f"[{agent_name}] Starting cursor-agent with PTY...")
+            print(f"[{agent_name}] TIP: Reference agent file in chat with:")
+            print(f"[{agent_name}]   @{agent_file}")
             original_dir = os.getcwd()
             os.chdir(workspace)
             try:
