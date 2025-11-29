@@ -58,6 +58,15 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from: {agent_file}"
         cmd = ["claude", prompt]
         
+    elif cli_tool == "copilot-cli":
+        # GitHub Copilot CLI (npm @github/copilot)
+        print(f"[{agent_name}] Starting GitHub Copilot CLI session...")
+        print(f"[{agent_name}] Tip: Reference agent with @{os.path.relpath(agent_file, workspace)}")
+        print(f"[{agent_name}] Use /login if not authenticated")
+        if sys.platform == "win32":
+            print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
+        cmd = ["copilot"]
+        
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
         print(f"[{agent_name}] === VS Code Copilot Instructions ===")
@@ -102,6 +111,11 @@ def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
         # OpenAI Codex CLI: full-auto mode
         prompt = f"Follow these agent instructions:\n\n{agent_content}"
         cmd = ["codex", "--approval-mode", "full-auto", prompt]
+        
+    elif cli_tool == "copilot-cli":
+        # GitHub Copilot CLI - programmatic mode
+        prompt = f"You are an AI agent working in: {workspace}\n\nFollow these instructions:\n{agent_content[:3000]}"
+        cmd = ["copilot", "-p", prompt, "--allow-tool", "write", "--allow-tool", "shell(git)"]
         
     elif cli_tool == "test":
         # Test mode: just echo what would run
@@ -189,7 +203,7 @@ Examples:
     parser.add_argument("-w", "--workspace", default=".", 
                         help="Path to YOUR project workspace (where the agent will work)")
     parser.add_argument("-c", "--cli", default="gemini", 
-                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "vscode", "test"],
+                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "test"],
                         help="CLI tool to use (default: gemini)")
     parser.add_argument("-a", "--agent", 
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")

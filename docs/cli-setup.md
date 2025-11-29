@@ -250,48 +250,62 @@ python scripts/run_agents.py --cli robodev --agents devops
 
 ## GitHub Copilot CLI
 
+> **Note**: The old `gh copilot` extension is retired. This section covers the new standalone GitHub Copilot CLI.
+
+### Prerequisites
+
+- **Node.js 22+** and **npm 10+**
+- **GitHub Copilot subscription** (Pro, Pro+, Business, or Enterprise)
+
 ### Installation
 
 ```bash
-# Install GitHub CLI first
-# macOS
-brew install gh
+# Install the new GitHub Copilot CLI
+npm install -g @github/copilot
 
-# Windows
-winget install GitHub.cli
-
-# Linux
-sudo apt install gh
-
-# Then install Copilot extension
-gh extension install github/gh-copilot
+# Verify installation
+copilot --version
 ```
 
-### Configuration
+### Authentication
 
 ```bash
-# Authenticate with GitHub
-gh auth login
-
-# Create shell aliases (optional)
-gh copilot alias
+# Launch Copilot CLI and authenticate
+copilot
+# Then type: /login
 ```
 
-### Verification
+### Key Features
 
-```bash
-gh copilot --version
-gh copilot suggest "test" -t shell
-```
+| Feature | Command |
+|---------|---------|
+| Interactive mode | `copilot` |
+| Programmatic mode | `copilot -p "prompt"` |
+| Resume session | `copilot --resume` |
+| Reference files | `@path/to/file.md` in chat |
+| Run shell commands | `!git status` in chat |
 
 ### Usage with Capstone Agents
 
 ```bash
-# Run agent
-python scripts/run_agents.py --cli copilot --agents coordinator
+# Interactive session with designer agent
+python scripts/run_agents.py -c copilot-cli -a designer -i
 
-# Direct usage
-gh copilot suggest "$(cat agents/coordinator/coordinator.md)" -t code
+# Batch mode (auto-execute)
+python scripts/run_agents.py -c copilot-cli -a backend
+
+# Direct usage - reference agent file in session
+copilot
+# Then type: @agents/coordinator/coordinator.md help me plan my project
+```
+
+### Windows Note
+
+Native Windows PowerShell support is experimental. For best results on Windows, use WSL:
+
+```bash
+wsl
+copilot
 ```
 
 ---
@@ -334,7 +348,7 @@ See [VS Code Copilot Guide](vscode-copilot-guide.md) for detailed instructions.
 | OpenCodex | `npm i -g @openai/codex-cli` | `OPENAI_API_KEY` |
 | QwenCLI | `pip install qwen-cli` | `DASHSCOPE_API_KEY` |
 | RoboDev | `npm i -g robodev-cli` | `ROBODEV_API_KEY` |
-| Copilot CLI | `gh extension install github/gh-copilot` | GitHub Auth |
+| Copilot CLI | `npm i -g @github/copilot` | GitHub Auth (`/login`) |
 | VS Code | Download from code.visualstudio.com | GitHub Auth |
 
 ---
