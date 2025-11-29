@@ -56,7 +56,7 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
 ---
 You are now the {agent_name} agent. Working directory: {workspace}
 Begin your workflow."""
-        cmd = ["gemini", prompt]
+        cmd = ["gemini", "-i", prompt]
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
