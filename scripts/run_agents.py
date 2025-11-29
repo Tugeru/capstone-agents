@@ -39,7 +39,8 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from this file: {agent_file}"
+        # Use short prompt to avoid terminal buffer issues
+        prompt = f"Read @{agent_file} and act as the {agent_name} agent. Workspace: {workspace}"
         cmd = ["cursor-agent", prompt]
         
     elif cli_tool == "cursor-ide":
