@@ -43,8 +43,20 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
     
     if cli_tool == "gemini":
         # Gemini CLI: interactive mode with agent context
-        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from this file: {agent_file}"
-        cmd = ["gemini", "-i", prompt]
+        # Note: Gemini can only read files within the workspace, so we pass agent content directly
+        agent_content = read_agent_file(agent_file)
+        if agent_content is None:
+            print(f"[{agent_name}] Failed to read agent file.")
+            return
+        
+        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        cmd = ["gemini", prompt]
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
