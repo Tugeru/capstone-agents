@@ -299,6 +299,14 @@ copilot
 # Then type: @agents/coordinator/coordinator.md help me plan my project
 ```
 
+When you run `python scripts/run_agents.py -c copilot-cli -a <agent> -i`:
+
+- The script first initializes GitHub Copilot CLI with a **one-shot prompt** that contains the full agent instructions and workspace context.
+- If this initialization step fails (Copilot exits with a non-zero status), the script reports the error and **aborts** instead of continuing with an empty context.
+- On success, it then starts an interactive `copilot --continue` session so you can keep chatting with the agent.
+
+Using `run_agents.py` is the **recommended** way to use Copilot CLI with Capstone Agents, because it automatically wires the correct agent definition and workspace information into the session for you.
+
 ### Windows Note
 
 Native Windows PowerShell support is experimental. For best results on Windows, use WSL:

@@ -116,7 +116,7 @@ Begin your workflow."""
             print(f"[{agent_name}] >>> Paste with Ctrl+V (or Cmd+V) in the chat")
         else:
             print(f"[{agent_name}] Could not copy to clipboard. Manual load:")
-            print(f"[{agent_name}]     @{agent_file} follow these instructions")
+        print(f"[{agent_name}]     @{agent_file} follow these instructions")
         print("-" * 60)
         
         os.chdir(workspace)

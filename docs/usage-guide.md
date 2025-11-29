@@ -49,7 +49,7 @@ python scripts/run_agents.py -a <agent> -c test
 |------|-----------|-------------|--------|
 | `-a` | `--agent` | Agent to run (designer, frontend, etc.) | coordinator |
 | `-w` | `--workspace` | Path to your project | `.` (current) |
-| `-c` | `--cli` | CLI tool (gemini, cursor, codex, claude, vscode) | gemini |
+| `-c` | `--cli` | CLI tool (`gemini`, `cursor`, `cursor-ide`, `codex`, `claude`, `copilot-cli`, `vscode`, `test`) | gemini |
 | `-i` | `--interactive` | Stay open for conversation | off |
 | `-t` | `--type` | Agent type (planning, impl) | planning |
 | `-l` | `--list` | List available agents | — |
@@ -158,6 +158,8 @@ Supported CLIs:
 - `cursor` — Cursor IDE/CLI
 - `codex` — OpenAI Codex CLI
 - `claude` — Anthropic Claude CLI
+- `cursor-ide` — Opens the workspace in Cursor IDE with instructions to paste agent content
+- `copilot-cli` — GitHub Copilot CLI; interactive runs auto-initialize the session with the selected agent's instructions
 - `vscode` — VS Code (opens workspace with instructions)
 - `test` — Test mode (dry run, no CLI invoked)
 
