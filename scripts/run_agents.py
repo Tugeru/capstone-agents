@@ -48,74 +48,24 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        # Similar to copilot-cli: run headless first, then resume interactively
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
-        print(f"[{agent_name}] Starting cursor-agent session...")
-        
-        # Pass agent instructions as initial prompt (headless)
-        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Confirm your role briefly."""
-        
-        # Step 1: Initialize agent context with headless prompt
-        print(f"[{agent_name}] Initializing agent context (headless)...")
-        conversation_id = None
-        try:
-            result = subprocess.run(
-                ["cursor-agent", "-p", initial_prompt],
-                cwd=workspace,
-                capture_output=True,
-                text=True
-            )
-            # Parse the conversation ID from output for resume
-            output = result.stdout + result.stderr
-            print(output)
-            
-            # Look for conversation ID in output (format: --resume=<uuid>)
-            match = re.search(r'--resume[=\s]+([a-f0-9-]{36})', output)
-            if match:
-                conversation_id = match.group(1)
-                print(f"[{agent_name}] Conversation ID: {conversation_id}")
-            else:
-                # Try to find any UUID in output
-                match = re.search(r'([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})', output)
-                conversation_id = match.group(1) if match else None
-                
-        except FileNotFoundError:
-            print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
-            return
-        except Exception as e:
-            print(f"[{agent_name}] Failed to initialize: {e}")
-            return
-        
-        # Step 2: Resume with interactive session
-        print("-" * 60)
-        print(f"[{agent_name}] Resuming interactive session (Ctrl+C to exit)...")
+        # Note: cursor-agent is a TUI tool without headless mode
+        # We launch it directly and instruct user to load agent context
+        print(f"[{agent_name}] Starting cursor-agent...")
+        print(f"[{agent_name}] ")
+        print(f"[{agent_name}] >>> To load agent instructions, type in the chat:")
+        print(f"[{agent_name}]     @{agent_file} follow these instructions")
+        print(f"[{agent_name}] ")
         print("-" * 60)
         
         os.chdir(workspace)
-        if conversation_id:
-            # Resume specific conversation
-            try:
-                os.execvp("cursor-agent", ["cursor-agent", f"--resume={conversation_id}"])
-            except Exception as e:
-                print(f"[{agent_name}] Failed to resume: {e}")
-        else:
-            # Fallback: just launch cursor-agent (user will need to reference file)
-            print(f"[{agent_name}] Could not get conversation ID, starting fresh session.")
-            print(f"[{agent_name}] TIP: Reference agent file with: @{agent_file}")
-            try:
-                os.execvp("cursor-agent", ["cursor-agent"])
-            except Exception as e:
-                print(f"[{agent_name}] Failed to start: {e}")
+        try:
+            # execvp replaces this process entirely - gives cursor-agent full terminal control
+            os.execvp("cursor-agent", ["cursor-agent"])
+        except FileNotFoundError:
+            print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
+            print(f"[{agent_name}] Install with: npm install -g cursor-agent")
+        except Exception as e:
+            print(f"[{agent_name}] Failed to start cursor-agent: {e}")
         return  # Only reached if execvp fails
         
     elif cli_tool == "cursor-ide":
