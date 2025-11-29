@@ -60,12 +60,29 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
         
     elif cli_tool == "copilot-cli":
         # GitHub Copilot CLI (npm @github/copilot)
+        # Read agent content to pass as initial context
+        agent_content = read_agent_file(agent_file)
+        if agent_content is None:
+            print(f"[{agent_name}] Failed to read agent file.")
+            return
+        
         print(f"[{agent_name}] Starting GitHub Copilot CLI session...")
-        print(f"[{agent_name}] Tip: Reference agent with @{os.path.relpath(agent_file, workspace)}")
-        print(f"[{agent_name}] Use /login if not authenticated")
+        print(f"[{agent_name}] Loading agent instructions into session...")
         if sys.platform == "win32":
             print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
-        cmd = ["copilot"]
+        
+        # Pass agent instructions as initial prompt
+        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions completely:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Respond to all future messages according to your role, responsibilities, and workflow defined above.
+Working directory: {workspace}
+
+Confirm you understand your role by briefly stating who you are and your key responsibilities."""
+        
+        cmd = ["copilot", "-p", initial_prompt]
         
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
