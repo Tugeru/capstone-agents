@@ -191,6 +191,26 @@ Confirm your role briefly."""
         print("-" * 60)
         cmd = ["copilot", "--continue"]
         
+    elif cli_tool == "rovodev":
+        # RovoDev CLI: interactive mode
+        # Read agent content for validation
+        agent_content = read_agent_file(agent_file)
+        if agent_content is None:
+            print(f"[{agent_name}] Failed to read agent file.")
+            return
+        
+        print(f"[{agent_name}] Starting RovoDev CLI session...")
+        # RovoDev CLI: acli rovodev run with instruction executes it first, then continues interactively
+        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        cmd = ["acli", "rovodev", "run", initial_prompt]
+        # Workspace is set via cwd parameter in subprocess.run()
+        
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
         print(f"[{agent_name}] === VS Code Copilot Instructions ===")
@@ -240,6 +260,18 @@ def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
         # GitHub Copilot CLI - programmatic mode
         prompt = f"You are an AI agent working in: {workspace}\n\nFollow these instructions:\n{agent_content[:3000]}"
         cmd = ["copilot", "-p", prompt, "--allow-tool", "write", "--allow-tool", "shell(git)"]
+        
+    elif cli_tool == "rovodev":
+        # RovoDev CLI: batch mode with agent context
+        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        cmd = ["acli", "rovodev", "run", initial_prompt]
+        # Workspace is set via cwd parameter in subprocess.Popen()
         
     elif cli_tool == "test":
         # Test mode: just echo what would run
@@ -327,7 +359,7 @@ Examples:
     parser.add_argument("-w", "--workspace", default=".", 
                         help="Path to YOUR project workspace (where the agent will work)")
     parser.add_argument("-c", "--cli", default="gemini", 
-                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "test"],
+                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "rovodev", "test"],
                         help="CLI tool to use (default: gemini)")
     parser.add_argument("-a", "--agent", 
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")
