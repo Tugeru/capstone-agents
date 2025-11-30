@@ -3,6 +3,8 @@ import os
 import re
 import subprocess
 import sys
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 # PTY support for TUI-based CLIs (Unix/Mac/WSL)
@@ -12,6 +14,14 @@ try:
     HAS_PTY = True
 except ImportError:
     pass  # Windows native doesn't have pty module
+
+# Select support for non-blocking stdin (Unix/WSL)
+HAS_SELECT = False
+try:
+    import select
+    HAS_SELECT = True
+except ImportError:
+    pass  # Windows native doesn't have select module
 
 # Path to the capstone-agents repository (where agent definitions live)
 CAPSTONE_AGENTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -200,7 +210,10 @@ Confirm your role briefly."""
             return
         
         print(f"[{agent_name}] Starting RovoDev CLI session...")
-        # RovoDev CLI: acli rovodev run with instruction executes it first, then continues interactively
+        if sys.platform == "win32":
+            print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
+        
+        # Pass agent instructions as initial prompt
         initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
 
 {agent_content}
@@ -208,8 +221,96 @@ Confirm your role briefly."""
 ---
 You are now the {agent_name} agent. Working directory: {workspace}
 Begin your workflow."""
-        cmd = ["acli", "rovodev", "run", initial_prompt]
-        # Workspace is set via cwd parameter in subprocess.run()
+        
+        # Start interactive session with stdin pipe to send initial prompt
+        # Then forward user input via threading
+        process = None
+        try:
+            process = subprocess.Popen(
+                ["acli", "rovodev", "run"],
+                cwd=workspace,
+                stdin=subprocess.PIPE,
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+                text=True,
+                bufsize=0  # Unbuffered for interactive use
+            )
+            
+            # Send agent instructions as first input
+            process.stdin.write(initial_prompt + "\n")
+            process.stdin.flush()
+            
+            # Small delay to ensure initial prompt is processed
+            time.sleep(0.1)
+            
+            # Forward user input from sys.stdin to process.stdin in a separate thread
+            # Use non-blocking approach to prevent hangs
+            def forward_stdin():
+                try:
+                    while process.poll() is None:  # While process is running
+                        # Use select for non-blocking read (Unix/WSL only)
+                        if sys.platform != "win32" and HAS_SELECT:
+                            ready, _, _ = select.select([sys.stdin], [], [], 0.1)
+                            if ready:
+                                data = sys.stdin.read(1024)  # Read in chunks
+                                if data:
+                                    process.stdin.write(data)
+                                    process.stdin.flush()
+                                else:
+                                    break
+                        else:
+                            # Fallback: line-based reading
+                            try:
+                                line = sys.stdin.readline()
+                                if line:
+                                    process.stdin.write(line)
+                                    process.stdin.flush()
+                                else:
+                                    break
+                            except:
+                                break
+                except (BrokenPipeError, OSError):
+                    # Process closed stdin or terminated
+                    pass
+                except Exception:
+                    # Ignore other errors in forwarding thread
+                    pass
+                finally:
+                    try:
+                        if process and process.stdin:
+                            process.stdin.close()
+                    except:
+                        pass
+            
+            stdin_thread = threading.Thread(target=forward_stdin, daemon=True)
+            stdin_thread.start()
+            
+            # Wait for process to complete
+            process.wait()
+            
+        except FileNotFoundError:
+            print(f"[{agent_name}] CLI tool 'acli' not found. Is it installed and in PATH?")
+            return
+        except KeyboardInterrupt:
+            print(f"\n[{agent_name}] Session ended.")
+            if process:
+                try:
+                    process.terminate()
+                    process.wait(timeout=2)
+                except:
+                    try:
+                        process.kill()
+                    except:
+                        pass
+            return
+        except Exception as e:
+            print(f"[{agent_name}] Failed to start: {e}")
+            if process:
+                try:
+                    process.terminate()
+                except:
+                    pass
+            return
         
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
