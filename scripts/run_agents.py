@@ -1,6 +1,7 @@
 import argparse
 import os
 import re
+import signal
 import subprocess
 import sys
 import threading
@@ -35,6 +36,22 @@ def read_agent_file(agent_file):
     except Exception as e:
         print(f"Error reading {agent_file}: {e}")
         return None
+
+
+def cleanup_process(p):
+    """Cleanly terminate subprocess"""
+    if p and p.poll() is None:
+        try:
+            p.terminate()
+            p.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            try:
+                p.kill()
+                p.wait()
+            except:
+                pass
+        except:
+            pass
 
 
 def copy_to_clipboard(text):
@@ -225,6 +242,17 @@ Begin your workflow."""
         # Start interactive session with stdin pipe to send initial prompt
         # Then forward user input via threading
         process = None
+        
+        # Set up signal handler for clean Ctrl+C handling
+        def signal_handler(signum, frame):
+            if process:
+                cleanup_process(process)
+            sys.exit(0)
+        
+        # Register signal handler (Unix/WSL only, Windows handles differently)
+        if sys.platform != "win32":
+            signal.signal(signal.SIGINT, signal_handler)
+        
         try:
             process = subprocess.Popen(
                 ["acli", "rovodev", "run"],
@@ -240,8 +268,9 @@ Begin your workflow."""
             process.stdin.write(initial_prompt + "\n")
             process.stdin.flush()
             
-            # Small delay to ensure initial prompt is processed
-            time.sleep(0.1)
+            # Longer delay to ensure RovoDev is fully initialized
+            # RovoDev needs time to process the prompt and initialize its MCP connections
+            time.sleep(2.0)  # Increased from 0.1s
             
             # Forward user input from sys.stdin to process.stdin in a separate thread
             # Use non-blocking approach to prevent hangs
@@ -294,14 +323,7 @@ Begin your workflow."""
         except KeyboardInterrupt:
             print(f"\n[{agent_name}] Session ended.")
             if process:
-                try:
-                    process.terminate()
-                    process.wait(timeout=2)
-                except:
-                    try:
-                        process.kill()
-                    except:
-                        pass
+                cleanup_process(process)
             return
         except Exception as e:
             print(f"[{agent_name}] Failed to start: {e}")
