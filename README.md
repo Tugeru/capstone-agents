@@ -6,7 +6,7 @@ A fully functional, modular, and workspace-agnostic AI agent repository intended
 - **10+ Agent Roles**: From Coordinator to Blockchain Developer.
 - **Dual-Layer Agents**: Planning and Implementation agents for each role.
 - **MCP Support**: Integrated with Model Context Protocol for tools like Figma, Supabase, Docker, etc.
-- **Multi-CLI & IDE Support**: Works with Gemini, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, and VS Code Copilot (see Integration Guides).
+- **Multi-CLI & IDE Support**: Works with Gemini, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, RovoDev, and VS Code Copilot (see Integration Guides).
 - **Workspace Agnostic**: Can be dropped into any project folder.
 
 ## Getting Started
@@ -44,7 +44,7 @@ Or use the bash wrapper:
 
 See [Usage Guide](docs/usage-guide.md) for the full command cheatsheet.
 
-For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
+For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, RovoDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
 
 
 ## Documentation
@@ -60,6 +60,7 @@ For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, VS Code Cop
 - [OpenCodex CLI Integration](Integration/opencodex/README.md) - run agents via the OpenAI Codex CLI.
 - [Qwen CLI Integration (QwenCLI)](Integration/qwencli/) - use QwenCLI with Capstone agents.
 - [RoboDev Integration](Integration/robodev/README.md) - connect Capstone agents with RoboDev profiles.
+- [RovoDev CLI Integration](Integration/rovodev/README.md) - use Capstone agents with Atlassian's RovoDev CLI.
 - [GitHub Copilot CLI Integration](Integration/copilot/README.md) - use Capstone agents with the standalone Copilot CLI.
 - [VS Code Copilot Integration](Integration/vscode-copilot/README.md) - configure VS Code for Capstone agent workflows.
 

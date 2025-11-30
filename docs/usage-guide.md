@@ -160,6 +160,7 @@ Supported CLIs:
 - `claude` — Anthropic Claude CLI
 - `cursor-ide` — Opens the workspace in Cursor IDE with instructions to paste agent content
 - `copilot-cli` — GitHub Copilot CLI; interactive runs auto-initialize the session with the selected agent's instructions
+- `rovodev` — RovoDev CLI (Atlassian); agent instructions copied to clipboard for manual pasting
 - `vscode` — VS Code (opens workspace with instructions)
 - `test` — Test mode (dry run, no CLI invoked)
 
