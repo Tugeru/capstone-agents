@@ -273,31 +273,16 @@ Begin your workflow."""
             time.sleep(2.0)  # Increased from 0.1s
             
             # Forward user input from sys.stdin to process.stdin in a separate thread
-            # Use non-blocking approach to prevent hangs
+            # Use blocking readline() - only activates when user types, won't interfere with initialization
             def forward_stdin():
                 try:
-                    while process.poll() is None:  # While process is running
-                        # Use select for non-blocking read (Unix/WSL only)
-                        if sys.platform != "win32" and HAS_SELECT:
-                            ready, _, _ = select.select([sys.stdin], [], [], 0.1)
-                            if ready:
-                                data = sys.stdin.read(1024)  # Read in chunks
-                                if data:
-                                    process.stdin.write(data)
-                                    process.stdin.flush()
-                                else:
-                                    break
-                        else:
-                            # Fallback: line-based reading
-                            try:
-                                line = sys.stdin.readline()
-                                if line:
-                                    process.stdin.write(line)
-                                    process.stdin.flush()
-                                else:
-                                    break
-                            except:
-                                break
+                    # Use blocking readline - only activates when user types
+                    # This won't interfere with RovoDev initialization
+                    for line in sys.stdin:
+                        if process.poll() is not None:  # Process ended
+                            break
+                        process.stdin.write(line)
+                        process.stdin.flush()
                 except (BrokenPipeError, OSError):
                     # Process closed stdin or terminated
                     pass
