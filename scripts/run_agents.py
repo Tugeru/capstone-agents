@@ -220,7 +220,8 @@ Confirm your role briefly."""
         
     elif cli_tool == "rovodev":
         # RovoDev CLI: interactive mode
-        # Read agent content for validation
+        # Note: RovoDev needs direct terminal access, so we use execvp like cursor-agent
+        # We copy agent instructions to clipboard for easy pasting
         agent_content = read_agent_file(agent_file)
         if agent_content is None:
             print(f"[{agent_name}] Failed to read agent file.")
@@ -230,8 +231,8 @@ Confirm your role briefly."""
         if sys.platform == "win32":
             print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
         
-        # Pass agent instructions as initial prompt
-        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+        # Prepare agent instructions for manual pasting
+        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
 
 {agent_content}
 
@@ -239,85 +240,28 @@ Confirm your role briefly."""
 You are now the {agent_name} agent. Working directory: {workspace}
 Begin your workflow."""
         
-        # Start interactive session with stdin pipe to send initial prompt
-        # Then forward user input via threading
-        process = None
+        # Copy to clipboard for easy pasting
+        clipboard_success = copy_to_clipboard(prompt)
         
-        # Set up signal handler for clean Ctrl+C handling
-        def signal_handler(signum, frame):
-            if process:
-                cleanup_process(process)
-            sys.exit(0)
+        print(f"[{agent_name}] Starting RovoDev CLI...")
+        if clipboard_success:
+            print(f"[{agent_name}] Agent instructions copied to clipboard!")
+            print(f"[{agent_name}] >>> Paste with Ctrl+V (or Cmd+V) in the RovoDev prompt")
+        else:
+            print(f"[{agent_name}] Could not copy to clipboard. Manual load:")
+            print(f"[{agent_name}]     {prompt[:200]}...")
+        print("-" * 60)
         
-        # Register signal handler (Unix/WSL only, Windows handles differently)
-        if sys.platform != "win32":
-            signal.signal(signal.SIGINT, signal_handler)
-        
+        os.chdir(workspace)
         try:
-            process = subprocess.Popen(
-                ["acli", "rovodev", "run"],
-                cwd=workspace,
-                stdin=subprocess.PIPE,
-                stdout=sys.stdout,
-                stderr=sys.stderr,
-                text=True,
-                bufsize=0  # Unbuffered for interactive use
-            )
-            
-            # Send agent instructions as first input
-            process.stdin.write(initial_prompt + "\n")
-            process.stdin.flush()
-            
-            # Longer delay to ensure RovoDev is fully initialized
-            # RovoDev needs time to process the prompt and initialize its MCP connections
-            time.sleep(2.0)  # Increased from 0.1s
-            
-            # Forward user input from sys.stdin to process.stdin in a separate thread
-            # Use blocking readline() - only activates when user types, won't interfere with initialization
-            def forward_stdin():
-                try:
-                    # Use blocking readline - only activates when user types
-                    # This won't interfere with RovoDev initialization
-                    for line in sys.stdin:
-                        if process.poll() is not None:  # Process ended
-                            break
-                        process.stdin.write(line)
-                        process.stdin.flush()
-                except (BrokenPipeError, OSError):
-                    # Process closed stdin or terminated
-                    pass
-                except Exception:
-                    # Ignore other errors in forwarding thread
-                    pass
-                finally:
-                    try:
-                        if process and process.stdin:
-                            process.stdin.close()
-                    except:
-                        pass
-            
-            stdin_thread = threading.Thread(target=forward_stdin, daemon=True)
-            stdin_thread.start()
-            
-            # Wait for process to complete
-            process.wait()
-            
+            # execvp replaces this process entirely - gives RovoDev full terminal control
+            os.execvp("acli", ["acli", "rovodev", "run"])
         except FileNotFoundError:
-            print(f"[{agent_name}] CLI tool 'acli' not found. Is it installed and in PATH?")
-            return
-        except KeyboardInterrupt:
-            print(f"\n[{agent_name}] Session ended.")
-            if process:
-                cleanup_process(process)
-            return
+            print(f"[{agent_name}] acli not found. Is it installed and in PATH?")
+            print(f"[{agent_name}] Install with: npm install -g @atlassian/rovo-dev-cli")
         except Exception as e:
-            print(f"[{agent_name}] Failed to start: {e}")
-            if process:
-                try:
-                    process.terminate()
-                except:
-                    pass
-            return
+            print(f"[{agent_name}] Failed to start RovoDev: {e}")
+        return  # Only reached if execvp fails
         
     elif cli_tool == "vscode":
         # VS Code: open workspace and show instructions
