@@ -87,7 +87,7 @@ def copy_to_clipboard(text):
         return False
 
 
-def run_agent_interactive(agent_name, agent_file, cli_tool, workspace):
+def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, auto_approve=False):
     """Run an agent in interactive mode - gives you full control of the CLI."""
     print(f"[{agent_name}] Launching interactive session...")
     print(f"[{agent_name}] Workspace: {workspace}")
@@ -287,7 +287,7 @@ Begin your workflow."""
         print(f"[{agent_name}] Failed to start: {e}")
 
 
-def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
+def run_agent_batch(agent_name, agent_file, cli_tool, workspace, auto_approve=False):
     """Run an agent in batch mode - auto-executes and exits."""
     print(f"[{agent_name}] Launching batch mode using {cli_tool}...")
     
@@ -295,26 +295,42 @@ def run_agent_batch(agent_name, agent_file, cli_tool, workspace):
     if agent_content is None:
         print(f"[{agent_name}] Failed to read agent file.")
         return
+    # Safety: require explicit approval before performing destructive or auto-approved actions
+    destructive_clis = ["gemini", "codex", "copilot-cli", "rovodev"]
+    if not auto_approve and cli_tool in destructive_clis:
+        print(f"[{agent_name}] Batch mode for '{cli_tool}' is potentially destructive and requires --auto-approve.")
+        print(f"[{agent_name}] Agent instructions are available at: {agent_file}")
+        print(f"[{agent_name}] To run in batch mode, re-run with --auto-approve or use interactive mode (-i) to manually confirm actions.")
+        return
     
     cmd = []
     
     if cli_tool == "gemini":
-        # Gemini CLI: one-shot mode with auto-approval
+        # Gemini CLI: one-shot mode. Only use aggressive/auto flags when explicitly approved.
         prompt = f"You are an AI agent. Work in workspace: {workspace}\n\nAgent instructions:\n{agent_content[:2000]}"
-        cmd = ["gemini", "--yolo", prompt]
+        if auto_approve:
+            cmd = ["gemini", "--yolo", prompt]
+        else:
+            cmd = ["gemini", prompt]
         
     elif cli_tool == "codex":
-        # OpenAI Codex CLI: full-auto mode
+        # OpenAI Codex CLI: only enable full-auto approval when explicitly approved
         prompt = f"Follow these agent instructions:\n\n{agent_content}"
-        cmd = ["codex", "--approval-mode", "full-auto", prompt]
+        if auto_approve:
+            cmd = ["codex", "--approval-mode", "full-auto", prompt]
+        else:
+            cmd = ["codex", prompt]
         
     elif cli_tool == "copilot-cli":
-        # GitHub Copilot CLI - programmatic mode
+        # GitHub Copilot CLI - programmatic mode. Only grant tool permissions when explicitly approved.
         prompt = f"You are an AI agent working in: {workspace}\n\nFollow these instructions:\n{agent_content[:3000]}"
-        cmd = ["copilot", "-p", prompt, "--allow-tool", "write", "--allow-tool", "shell(git)"]
+        base_cmd = ["copilot", "-p", prompt]
+        if auto_approve:
+            base_cmd.extend(["--allow-tool", "write", "--allow-tool", "shell(git)"])
+        cmd = base_cmd
         
     elif cli_tool == "rovodev":
-        # RovoDev CLI: batch mode with agent context
+        # RovoDev CLI: batch mode with agent context. Only run when explicitly approved.
         initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
 
 {agent_content}
@@ -422,6 +438,8 @@ Examples:
                         help="Agent type: planning (default) or implementation")
     parser.add_argument("-l", "--list", action="store_true",
                         help="List available agents")
+    parser.add_argument("--auto-approve", action="store_true",
+                        help="Allow agent batch runs to execute tools or modify the workspace without interactive confirmation")
     parser.add_argument("--agents-dir", 
                         help="Custom path to agents directory")
     
@@ -472,9 +490,9 @@ Examples:
     print("=" * 60)
     
     if args.interactive:
-        run_agent_interactive(agent_name, agent_file, args.cli, workspace)
+        run_agent_interactive(agent_name, agent_file, args.cli, workspace, args.auto_approve)
     else:
-        run_agent_batch(agent_name, agent_file, args.cli, workspace)
+        run_agent_batch(agent_name, agent_file, args.cli, workspace, args.auto_approve)
 
 
 if __name__ == "__main__":
