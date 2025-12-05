@@ -45,6 +45,8 @@ python scripts/run_agents.py -a frontend -c copilot-cli -w /path/to/your/project
 
 # Batch mode (programmatic execution)
 python scripts/run_agents.py -a backend -c copilot-cli -w /path/to/your/project -t impl
+
+**Batch safety note**: Programmatic Copilot runs that grant tool access (for example `--allow-tool` flags) require explicit `--auto-approve` when invoked via `scripts/run_agents.py`. Add `--auto-approve` to allow non-interactive execution that modifies the workspace.
 ```
 
 ### Direct Copilot CLI Usage

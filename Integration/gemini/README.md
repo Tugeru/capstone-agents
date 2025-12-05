@@ -32,6 +32,12 @@ python scripts/run_agents.py -a frontend -c gemini -w /path/to/your/project -i -
 
 # Or use the bash wrapper
 ./scripts/launch-agent.sh coordinator . gemini
+
+**Batch safety note**: Some automated or aggressive Gemini flags should only be used with explicit approval. When using `scripts/run_agents.py` in non-interactive batch mode, add `--auto-approve` if you intend the agent to run tools or make changes without manual confirmation. For example:
+
+```bash
+python scripts/run_agents.py -a frontend -c gemini -w /path/to/your/project --auto-approve
+```
 ```
 
 ### Running Multiple Agents

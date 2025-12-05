@@ -53,6 +53,7 @@ python scripts/run_agents.py -a <agent> -c test
 | `-i` | `--interactive` | Stay open for conversation | off |
 | `-t` | `--type` | Agent type (planning, impl) | planning |
 | `-l` | `--list` | List available agents | — |
+| `--auto-approve` | `--auto-approve` | Allow batch runs to execute tools or modify the workspace without interactive confirmation (use with caution) | off |
 
 ### Agent Type Values
 
@@ -163,6 +164,9 @@ Supported CLIs:
 - `rovodev` — RovoDev CLI (Atlassian); agent instructions copied to clipboard for manual pasting
 - `vscode` — VS Code (opens workspace with instructions)
 - `test` — Test mode (dry run, no CLI invoked)
+
+Note on batch safety:
+- Batch runs that enable aggressive or programmatic tool access (for example: `gemini` with auto flags, `codex` full-auto, `copilot-cli` with `--allow-tool`, or `rovodev` programmatic actions) require explicit `--auto-approve` to prevent accidental destructive changes. When in doubt, run with `-i` (interactive) so actions are confirmed manually.
 
 ---
 

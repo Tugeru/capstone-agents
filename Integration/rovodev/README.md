@@ -37,6 +37,8 @@ When you run an agent with RovoDev:
 3. Paste the instructions (Ctrl+V / Cmd+V) into the RovoDev prompt
 4. Continue your conversation with the agent
 
+**Batch safety note**: Programmatic batch runs using `rovodev` can execute actions without manual confirmation. `scripts/run_agents.py` requires `--auto-approve` for non-interactive batch runs that modify the workspace or use tool approvals. Prefer interactive mode when you want to confirm changes.
+
 ### Direct RovoDev CLI Usage
 
 ```bash

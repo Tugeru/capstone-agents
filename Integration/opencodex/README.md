@@ -29,6 +29,8 @@ python scripts/run_agents.py -a coordinator -c codex -w /path/to/your/project -i
 
 # Implementation session with frontend (implementation agent)
 python scripts/run_agents.py -a frontend -c codex -w /path/to/your/project -i -t impl
+
+**Batch safety note**: OpenCodex batch runs that enable full-auto or programmatic approval require an explicit `--auto-approve` flag when invoked via `scripts/run_agents.py`. Use interactive mode (`-i`) to confirm actions manually when in doubt.
 ```
 
 ### Direct OpenCodex CLI Usage

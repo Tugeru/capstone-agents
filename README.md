@@ -44,6 +44,8 @@ Or use the bash wrapper:
 
 See [Usage Guide](docs/usage-guide.md) for the full command cheatsheet.
 
+Note: Batch-mode runs that perform programmatic or potentially destructive actions now require an explicit `--auto-approve` flag when invoked via `scripts/run_agents.py`. Use `-i` (interactive) to confirm actions manually when unsure.
+
 For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, RovoDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
 
 
