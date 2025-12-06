@@ -272,6 +272,35 @@ Begin your workflow."""
         print(f"[{agent_name}] 3. Or use @workspace with the agent instructions")
         cmd = ["code", workspace]
         
+    elif cli_tool == "antigravity":
+        # Antigravity IDE: Prepare prompt for user to paste
+        agent_content = read_agent_file(agent_file)
+        if agent_content is None:
+            print(f"[{agent_name}] Failed to read agent file.")
+            return
+        
+        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        
+        clipboard_success = copy_to_clipboard(prompt)
+        
+        print(f"[{agent_name}] === Antigravity IDE Instructions ===")
+        if clipboard_success:
+            print(f"[{agent_name}] Agent instructions copied to clipboard!")
+            print(f"[{agent_name}] >>> Paste with Ctrl+V into your Antigravity session.")
+        else:
+            print(f"[{agent_name}] Could not copy to clipboard.")
+            print(f"[{agent_name}] Manually copy instructions from: {agent_file}")
+        print("-" * 60)
+        print(f"Tip: For multi-agent import, run:")
+        print(f"  python Integration/antigravity/generate_context.py -w {workspace}")
+        return
+        
     else:
         print(f"[{agent_name}] CLI '{cli_tool}' not supported for interactive mode.")
         return
@@ -427,7 +456,7 @@ Examples:
     parser.add_argument("-w", "--workspace", default=".", 
                         help="Path to YOUR project workspace (where the agent will work)")
     parser.add_argument("-c", "--cli", default="gemini", 
-                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "rovodev", "test"],
+                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "rovodev", "antigravity", "test"],
                         help="CLI tool to use (default: gemini)")
     parser.add_argument("-a", "--agent", 
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")
