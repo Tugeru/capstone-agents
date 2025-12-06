@@ -27,14 +27,29 @@ Enable Capstone Agents support in VS Code Copilot Chat with dynamic `@` mentions
 
 ## Available Triggers
 
-| Trigger | Role | Type |
-|---------|------|------|
-| `@coordinator` | Coordinator | Planning |
-| `@frontend planning` | Frontend | Planning |
-| `@frontend impl` | Frontend | Implementation |
-| `@backend planning` | Backend | Planning |
-| `@backend impl` | Backend | Implementation |
-| ...and more | | |
+| Trigger | Agent Role | Type |
+|---------|------------|------|
+| `@backend planning` | Backend Developer | Planning |
+| `@backend impl` | Backend Developer | Implementation |
+| `@blockchain planning` | Blockchain Developer | Planning |
+| `@blockchain impl` | Blockchain Developer | Implementation |
+| `@coordinator` | Coordinator | Lead |
+| `@database-engineer planning` | Database Engineer | Planning |
+| `@database-engineer impl` | Database Engineer | Implementation |
+| `@designer planning` | UI/UX Designer | Planning |
+| `@designer impl` | UI/UX Designer | Implementation |
+| `@devops planning` | DevOps Engineer | Planning |
+| `@devops impl` | DevOps Engineer | Implementation |
+| `@documentation planning` | Documentation Specialist | Planning |
+| `@documentation impl` | Documentation Specialist | Implementation |
+| `@frontend planning` | Frontend Developer | Planning |
+| `@frontend impl` | Frontend Developer | Implementation |
+| `@project-manager planning` | Project Manager | Planning |
+| `@project-manager impl` | Project Manager | Implementation |
+| `@qa planning` | QA Engineer | Planning |
+| `@qa impl` | QA Engineer | Implementation |
+| `@software-architect planning` | Software Architect | Planning |
+| `@software-architect impl` | Software Architect | Implementation |
 
 ## How It Works
 
