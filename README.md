@@ -6,7 +6,7 @@ A fully functional, modular, and workspace-agnostic AI agent repository intended
 - **10+ Agent Roles**: From Coordinator to Blockchain Developer.
 - **Dual-Layer Agents**: Planning and Implementation agents for each role.
 - **MCP Support**: Integrated with Model Context Protocol for tools like Figma, Supabase, Docker, etc.
-- **Multi-CLI & IDE Support**: Works with Gemini, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, RovoDev, and VS Code Copilot (see Integration Guides).
+- **Multi-CLI & IDE Support**: Works with Gemini, Antigravity, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, RovoDev, and VS Code Copilot (see Integration Guides).
 - **Workspace Agnostic**: Can be dropped into any project folder.
 
 ## Getting Started
@@ -46,7 +46,7 @@ See [Usage Guide](docs/usage-guide.md) for the full command cheatsheet.
 
 Note: Batch-mode runs that perform programmatic or potentially destructive actions now require an explicit `--auto-approve` flag when invoked via `scripts/run_agents.py`. Use `-i` (interactive) to confirm actions manually when unsure.
 
-For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, RovoDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
+For CLI/IDE-specific workflows (Cursor, Antigravity, OpenCodex, QwenCLI, RoboDev, RovoDev, VS Code Copilot), see the [Integration Guides](#integration-guides).
 
 
 ## Documentation
@@ -64,7 +64,8 @@ For CLI/IDE-specific workflows (Cursor, OpenCodex, QwenCLI, RoboDev, RovoDev, VS
 - [RoboDev Integration](Integration/robodev/README.md) - connect Capstone agents with RoboDev profiles.
 - [RovoDev CLI Integration](Integration/rovodev/README.md) - use Capstone agents with Atlassian's RovoDev CLI.
 - [GitHub Copilot CLI Integration](Integration/copilot/README.md) - use Capstone agents with the standalone Copilot CLI.
-- [VS Code Copilot Integration](Integration/vscode-copilot/README.md) - configure VS Code for Capstone agent workflows.
+- [VS Code Copilot Integration](Integration/vscode-copilot/README.md) - use Copilot Chat with dynamic `@agent` switching.
+- [Antigravity IDE Integration](Integration/antigravity/README.md) - import agents into Google's Antigravity IDE with `@` triggers.
 
 ## License
 MIT
