@@ -1,6 +1,6 @@
 # Capstone Agents
 
-A fully functional, modular, and workspace-agnostic AI agent repository intended for BS-IT capstone projects and any software development workflow.
+A fully functional, modular, and workspace-agnostic AI agent repository intended for BSIT capstone projects and any software development workflow.
 
 ## Features
 - **10+ Agent Roles**: From Coordinator to Blockchain Developer.
