@@ -409,20 +409,34 @@ Begin your workflow."""
         print(f"[{agent_name}] Failed: {e}")
 
 
-def find_agent_file(agent_name, agents_dir, agent_type="planning"):
-    """Find the agent file based on type (planning or implementation)."""
-    if agent_type == "implementation":
-        # Prioritize implementation file
-        possible_files = [
-            os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
-            os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
-        ]
+def find_agent_file(agent_name, agents_dir, agent_type="planning", legacy=False):
+    """Find the agent file based on type (planning or implementation).
+    
+    Args:
+        agent_name: Name of the agent (e.g., 'backend')
+        agents_dir: Path to agents directory
+        agent_type: 'planning' or 'implementation' (only used in legacy mode)
+        legacy: If True, look for split files in legacy/ subfolder
+    """
+    if legacy:
+        # Legacy mode: look for split files in legacy/ subfolder
+        if agent_type == "implementation":
+            possible_files = [
+                os.path.join(agents_dir, agent_name, "legacy", f"{agent_name}-implementation.md"),
+                os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
+            ]
+        else:
+            possible_files = [
+                os.path.join(agents_dir, agent_name, "legacy", f"{agent_name}-planning.md"),
+                os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
+            ]
     else:
-        # Default: prioritize planning file
+        # Unified mode: look for single {agent}.md file
         possible_files = [
-            os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
             os.path.join(agents_dir, agent_name, f"{agent_name}.md"),
-            os.path.join(agents_dir, agent_name, f"{agent_name}-implementation.md"),
+            # Fallback to legacy files if unified not found
+            os.path.join(agents_dir, agent_name, "legacy", f"{agent_name}-planning.md"),
+            os.path.join(agents_dir, agent_name, f"{agent_name}-planning.md"),
         ]
     
     for p_file in possible_files:
@@ -471,6 +485,8 @@ Examples:
                         help="Allow agent batch runs to execute tools or modify the workspace without interactive confirmation")
     parser.add_argument("--agents-dir", 
                         help="Custom path to agents directory")
+    parser.add_argument("--legacy", action="store_true",
+                        help="Use legacy split agents (planning/implementation) instead of unified agents")
     
     args = parser.parse_args()
     
@@ -505,14 +521,20 @@ Examples:
     # Normalize agent type
     agent_type = "implementation" if args.type in ["implementation", "impl", "i"] else "planning"
     
-    agent_file = find_agent_file(agent_name, agents_dir, agent_type)
+    agent_file = find_agent_file(agent_name, agents_dir, agent_type, legacy=args.legacy)
     
     if not agent_file:
-        print(f"Error: Agent '{agent_name}' ({agent_type}) not found.")
+        print(f"Error: Agent '{agent_name}' not found.")
         print("Use -l to list available agents.")
         sys.exit(1)
     
-    print(f"Agent: {agent_name} ({agent_type})")
+    # Determine display mode
+    if args.legacy:
+        mode_display = f"{agent_type} (legacy)"
+    else:
+        mode_display = "unified"
+    
+    print(f"Agent: {agent_name} ({mode_display})")
     print(f"Workspace: {workspace}")
     print(f"CLI: {args.cli}")
     print(f"Mode: {'interactive' if args.interactive else 'batch'}")
