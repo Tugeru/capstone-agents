@@ -31,6 +31,8 @@ def find_agent_files(agents_dir: str, roles: list[str] | None = None) -> list[di
     """
     Discover all agent files in the agents directory.
     Returns a list of dicts with 'role', 'type', and 'filepath'.
+    
+    Prefers unified agent files ({role}.md) over legacy split files.
     """
     agents = []
     if not os.path.isdir(agents_dir):
@@ -46,11 +48,28 @@ def find_agent_files(agents_dir: str, roles: list[str] | None = None) -> list[di
         if roles and role_name not in roles:
             continue
 
+        # Check for unified agent file first
+        unified_file = os.path.join(role_path, f"{role_name}.md")
+        if os.path.exists(unified_file):
+            agents.append({
+                'role': role_name,
+                'type': 'unified',
+                'filepath': unified_file,
+                'filename': f"{role_name}.md"
+            })
+            continue  # Skip legacy files if unified exists
+
+        # Fall back to legacy files (not in legacy/ subfolder for backwards compat)
         for filename in os.listdir(role_path):
             if not filename.endswith('.md'):
                 continue
+            # Skip legacy subfolder
+            if filename == 'legacy':
+                continue
 
             filepath = os.path.join(role_path, filename)
+            if os.path.isdir(filepath):
+                continue
             
             # Determine agent type (planning or implementation)
             if 'planning' in filename.lower():
@@ -58,7 +77,6 @@ def find_agent_files(agents_dir: str, roles: list[str] | None = None) -> list[di
             elif 'implementation' in filename.lower():
                 agent_type = 'impl'
             else:
-                # Default/generic agent file (e.g., coordinator.md)
                 agent_type = 'default'
 
             agents.append({
@@ -71,9 +89,10 @@ def find_agent_files(agents_dir: str, roles: list[str] | None = None) -> list[di
     return agents
 
 
+
 def generate_trigger(role: str, agent_type: str) -> str:
     """Generate the @-mention trigger for an agent."""
-    if agent_type == 'default':
+    if agent_type in ['default', 'unified']:
         return f"@{role}"
     else:
         return f"@{role} {agent_type}"
