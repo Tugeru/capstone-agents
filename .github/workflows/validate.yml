@@ -1,4 +1,4 @@
-name: Validate Agents
+name: CI
 
 on:
   push:
@@ -7,16 +7,47 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install linting dependencies
+      run: pip install -r requirements-dev.txt
+
+    - name: Run flake8
+      run: flake8 scripts/ --max-line-length=120 --ignore=E501,W503
+
   validate:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.11'
         
-    - name: Run Validation
+    - name: Run Agent Validation
       run: python scripts/validate-agent.py .
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Smoke Test - List Agents
+      run: python scripts/run_agents.py --list
+
+    - name: Smoke Test - Generate Context
+      run: python scripts/generate_context.py -w . > /dev/null

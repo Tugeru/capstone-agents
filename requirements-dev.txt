@@ -1,0 +1,2 @@
+# Development dependencies for CI
+flake8>=6.0.0
