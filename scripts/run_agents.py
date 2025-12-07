@@ -222,8 +222,11 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, context_m
         # Step 1: Initialize agent context with one-shot prompt
         print(f"[{agent_name}] Initializing agent context...")
         try:
+            # Append safety instruction to prevent auto-execution
+            safety_notice = "\n\nIMPORTANT: Do NOT execute any pending tasks immediately. Simply reply 'IAmReady' to acknowledge you have received these instructions. Wait for the user to issue a specific command."
+            
             subprocess.run(
-                ["copilot", "-p", context],
+                ["copilot", "-p", context + safety_notice],
                 cwd=workspace,
                 stdin=sys.stdin,
                 stdout=sys.stdout,
