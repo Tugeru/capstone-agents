@@ -8,6 +8,7 @@ A fully functional, modular, and workspace-agnostic AI agent repository intended
 - **MCP Support**: Integrated with Model Context Protocol for tools like Figma, Supabase, Docker, etc.
 - **Multi-CLI & IDE Support**: Works with Gemini, Antigravity, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, RovoDev, and VS Code Copilot (see Integration Guides).
 - **Workspace Agnostic**: Can be dropped into any project folder.
+- **Universal Context Mode**: Dynamically switch between agents in any CLI using `@` triggers.
 
 ## Getting Started
 
@@ -30,11 +31,12 @@ python scripts/run_agents.py -l
 
 Run an agent interactively on your project:
 ```bash
-# Planning agent (default)
+# Default agent mode (Planning & Implementation)
 python scripts/run_agents.py -a designer -w /path/to/your/project -i
+# In session: "Plan the UI" or "Implement the dashboard"
 
-# Implementation agent
-python scripts/run_agents.py -a designer -w /path/to/your/project -i -t impl
+# Legacy Mode (Split Agents)
+python scripts/run_agents.py -a designer -w /path/to/your/project -i --legacy -t impl
 ```
 
 Or use the bash wrapper:

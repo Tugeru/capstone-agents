@@ -16,7 +16,7 @@ Enable Capstone Agents support in VS Code Copilot Chat with dynamic `@` mentions
    - **Invoke Agent**: Type your prompt starting with an agent trigger.
 
    ```text
-   #file:copilot_agent_context.md @backend impl Create a new API endpoint for user login.
+   #file:copilot_agent_context.md @backend Plan and then implement a login API.
    ```
 
 ## Features
@@ -29,33 +29,23 @@ Enable Capstone Agents support in VS Code Copilot Chat with dynamic `@` mentions
 
 | Trigger | Agent Role | Type |
 |---------|------------|------|
-| `@backend planning` | Backend Developer | Planning |
-| `@backend impl` | Backend Developer | Implementation |
-| `@blockchain planning` | Blockchain Developer | Planning |
-| `@blockchain impl` | Blockchain Developer | Implementation |
+| `@backend` | Backend Developer | Unified |
+| `@blockchain` | Blockchain Developer | Unified |
 | `@coordinator` | Coordinator | Lead |
-| `@database-engineer planning` | Database Engineer | Planning |
-| `@database-engineer impl` | Database Engineer | Implementation |
-| `@designer planning` | UI/UX Designer | Planning |
-| `@designer impl` | UI/UX Designer | Implementation |
-| `@devops planning` | DevOps Engineer | Planning |
-| `@devops impl` | DevOps Engineer | Implementation |
-| `@documentation planning` | Documentation Specialist | Planning |
-| `@documentation impl` | Documentation Specialist | Implementation |
-| `@frontend planning` | Frontend Developer | Planning |
-| `@frontend impl` | Frontend Developer | Implementation |
-| `@project-manager planning` | Project Manager | Planning |
-| `@project-manager impl` | Project Manager | Implementation |
-| `@qa planning` | QA Engineer | Planning |
-| `@qa impl` | QA Engineer | Implementation |
-| `@software-architect planning` | Software Architect | Planning |
-| `@software-architect impl` | Software Architect | Implementation |
+| `@database-engineer` | Database Engineer | Unified |
+| `@designer` | UI/UX Designer | Unified |
+| `@devops` | DevOps Engineer | Unified |
+| `@documentation` | Documentation Specialist | Unified |
+| `@frontend` | Frontend Developer | Unified |
+| `@project-manager` | Project Manager | Unified |
+| `@qa` | QA Engineer | Unified |
+| `@software-architect` | Software Architect | Unified |
 
 ## How It Works
 
 VS Code Copilot allows you to bring files into your chat context (`#file`). The `generate_context.py` script aggregates all agent instructions into a single Markdown file with a **Meta-Prompt**. This prompt instructs the AI to:
 
-1. Look for triggers like `@backend impl`.
+1. Look for triggers like `@backend` or `@coordinator`.
 2. Ignore default behavior.
 3. Adopt the instructions found in the context file for that specific role.
 

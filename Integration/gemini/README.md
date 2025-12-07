@@ -52,6 +52,20 @@ python scripts/run_agents.py -a designer -c gemini -w /path/to/your/project -i -
 ./scripts/run-agents.sh --agents frontend backend designer --cli gemini
 ```
 
+### Universal Context Mode
+
+You can also run Gemini in universal mode, where all agents are loaded and switchable via `@` triggers:
+
+```bash
+# Start interactive session with all agents
+python scripts/run_agents.py -i --context-mode multi -c gemini
+```
+
+In the session:
+```text
+> @frontend create the login component.
+```
+
 ### Direct Gemini CLI Usage
 
 You can also invoke Gemini CLI directly with an agent prompt:

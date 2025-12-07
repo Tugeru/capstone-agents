@@ -109,6 +109,26 @@ graph LR
 
 ---
 
+### 5. Universal Context Mode (Dynamic Switching)
+
+With `scripts/run_agents.py`, you can enable **Universal Context Mode**, which loads *all* agent definitions into the context window at once. This allows you to dynamically switch between agents during an interactive session using `@` mention triggers.
+
+**Enable with:** `--context-mode multi` (Default for interactive sessions `-i`)
+
+**Usage**:
+1. Start an interactive session:
+   ```bash
+   python scripts/run_agents.py -i
+   ```
+2. In the chat, invoke any agent:
+   > @coordinator, please create a plan for...
+   > @frontend, implement the login page based on the plan.
+
+**Supported CLIs**:
+This works with **ALL** supported CLIs (Gemini, Cursor, Copilot, Qwen, etc.).
+
+---
+
 ## Example: Full-Stack Feature Development
 
 ### Scenario
