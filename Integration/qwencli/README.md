@@ -50,7 +50,7 @@ python scripts/run_agents.py -a frontend -c qwen -w /path/to/your/project -t p
 If you want to generate the system prompt manually for use with other tools or specific Qwen configurations:
 
 ```bash
-python Integration/qwencli/generate_context.py -w /path/to/your/project -o qwen_context.md
+python scripts/generate_context.py -w /path/to/your/project -o qwen_context.md
 ```
 
 Then use it with `qwen-cli`:

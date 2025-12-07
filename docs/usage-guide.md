@@ -58,6 +58,7 @@ python scripts/run_agents.py -a <agent> -c test
 | `-l` | `--list` | List available agents | — |
 | `--legacy` | `--legacy` | Use legacy split agents (planning/implementation) | off |
 | `--auto-approve` | `--auto-approve` | Allow batch runs to execute tools or modify the workspace without interactive confirmation (use with caution) | off |
+| `--context-mode` | `--context-mode` | Context mode: 'single' (focused) or 'multi' (all agents with @ triggers) | multi (interactive), single (batch) |
 
 ### Agent Type Values (Legacy Mode Only)
 
@@ -144,6 +145,19 @@ To run multiple agents in parallel, use `run-agents.sh`:
 Or with Python:
 ```bash
 python scripts/run_agents.py --agents frontend backend designer --cli cursor
+```
+
+### Context Mode (Single vs Multi)
+
+You can allow agents to switch roles dynamically or focus on a single agent:
+
+- **Multi-Agent Mode (`--context-mode multi`)**: Loads **all** agent definitions. You can use `@` triggers (e.g., `@backend`) to switch agents in the same session. **Default for interactive mode (`-i`).**
+- **Single-Agent Mode (`--context-mode single`)**: Loads **only** the specified agent. Best for focused tasks or batch operations. **Default for batch mode.**
+
+Example:
+```bash
+# Force single mode in interactive session
+python scripts/run_agents.py -a backend -i --context-mode single
 ```
 
 ### CLI Selection

@@ -8,6 +8,7 @@ A fully functional, modular, and workspace-agnostic AI agent repository intended
 - **MCP Support**: Integrated with Model Context Protocol for tools like Figma, Supabase, Docker, etc.
 - **Multi-CLI & IDE Support**: Works with Gemini, Antigravity, Cursor (CLI & IDE), OpenCodex, QwenCLI, RoboDev, RovoDev, and VS Code Copilot (see Integration Guides).
 - **Workspace Agnostic**: Can be dropped into any project folder.
+- **Universal Context Mode**: Dynamically switch between agents in any CLI using `@` triggers.
 
 ## Getting Started
 
