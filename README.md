@@ -30,11 +30,12 @@ python scripts/run_agents.py -l
 
 Run an agent interactively on your project:
 ```bash
-# Planning agent (default)
+# Default agent mode (Planning & Implementation)
 python scripts/run_agents.py -a designer -w /path/to/your/project -i
+# In session: "Plan the UI" or "Implement the dashboard"
 
-# Implementation agent
-python scripts/run_agents.py -a designer -w /path/to/your/project -i -t impl
+# Legacy Mode (Split Agents)
+python scripts/run_agents.py -a designer -w /path/to/your/project -i --legacy -t impl
 ```
 
 Or use the bash wrapper:

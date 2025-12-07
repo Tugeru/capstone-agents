@@ -33,13 +33,16 @@ python scripts/run_agents.py -l
 # Interactive planning session (recommended)
 python scripts/run_agents.py -a <agent> -w <workspace> -i
 
-# Interactive implementation session
-python scripts/run_agents.py -a <agent> -w <workspace> -i -t impl
+# Universal Agent Mode (Unified Planning & Implementation)
+python scripts/run_agents.py -a <agent> -w <workspace> -i
 
-# Batch mode (auto-run and exit)
+# Legacy Mode (Split Agents)
+python scripts/run_agents.py -a <agent> -w <workspace> --legacy -t impl -i
+
+# Batch mode
 python scripts/run_agents.py -a <agent> -w <workspace>
 
-# Test mode (dry run)
+# Test mode
 python scripts/run_agents.py -a <agent> -c test
 ```
 
@@ -53,9 +56,10 @@ python scripts/run_agents.py -a <agent> -c test
 | `-i` | `--interactive` | Stay open for conversation | off |
 | `-t` | `--type` | Agent type (planning, impl) | planning |
 | `-l` | `--list` | List available agents | — |
+| `--legacy` | `--legacy` | Use legacy split agents (planning/implementation) | off |
 | `--auto-approve` | `--auto-approve` | Allow batch runs to execute tools or modify the workspace without interactive confirmation (use with caution) | off |
 
-### Agent Type Values
+### Agent Type Values (Legacy Mode Only)
 
 | Value | Loads |
 |-------|-------|
@@ -65,17 +69,11 @@ python scripts/run_agents.py -a <agent> -c test
 ### Examples by Workflow
 
 ```bash
-# 1. Start planning with designer
+# 1. Start designer agent (handle both planning & impl)
 python scripts/run_agents.py -a designer -w ~/my-app -i
 
-# 2. Switch to implementation
-python scripts/run_agents.py -a designer -w ~/my-app -i -t impl
-
-# 3. Run QA to test
-python scripts/run_agents.py -a qa -w ~/my-app -i
-
-# 4. Generate documentation
-python scripts/run_agents.py -a documentation -w ~/my-app -i -t impl
+# 2. Start legacy implementation agent
+python scripts/run_agents.py -a designer -w ~/my-app -i --legacy -t impl
 ```
 
 ### Using Bash Scripts
@@ -95,19 +93,19 @@ chmod +x scripts/*.sh
 
 ## Agent Roles Overview
 
-| Role | Planning Agent | Implementation Agent | Primary Purpose |
-|------|----------------|---------------------|-----------------|
-| **Coordinator** | ✅ | — | Project planning, task delegation |
-| **Software Architect** | ✅ | ✅ | System design, technology selection |
-| **Frontend Developer** | ✅ | ✅ | UI implementation, client-side logic |
-| **Backend Developer** | ✅ | ✅ | API development, server-side logic |
-| **Database Engineer** | ✅ | ✅ | Schema design, query optimization |
-| **UI/UX Designer** | ✅ | ✅ | Wireframing, prototyping, design systems |
-| **DevOps Engineer** | ✅ | ✅ | CI/CD, infrastructure, containerization |
-| **QA Engineer** | ✅ | ✅ | Testing, quality assurance, bug tracking |
-| **Documentation** | ✅ | ✅ | Technical writing, API docs, user guides |
-| **Project Manager** | ✅ | ✅ | Timeline tracking, milestone management |
-| **Blockchain Developer** | ✅ | ✅ | Smart contracts, Web3 integration |
+| Role | Unified Agent | Legacy Planning | Legacy Impl | Primary Purpose |
+|------|:-------------:|:---------------:|:-----------:|-----------------|
+| **Coordinator** | ✅ | ✅ | — | Project planning, delegation |
+| **Software Architect** | ✅ | ✅ | ✅ | System design, tech stack |
+| **Frontend Developer** | ✅ | ✅ | ✅ | UI implementation |
+| **Backend Developer** | ✅ | ✅ | ✅ | API & Server logic |
+| **Database Engineer** | ✅ | ✅ | ✅ | Schema & Queries |
+| **UI/UX Designer** | ✅ | ✅ | ✅ | Wireframes & Design System |
+| **DevOps Engineer** | ✅ | ✅ | ✅ | CI/CD & Infrastructure |
+| **QA Engineer** | ✅ | ✅ | ✅ | Testing & Bugs |
+| **Documentation** | ✅ | ✅ | ✅ | Technical writing |
+| **Project Manager** | ✅ | ✅ | ✅ | Timeline & Milestones |
+| **Blockchain Developer**| ✅ | ✅ | ✅ | Smart Contracts |
 
 ---
 
@@ -118,11 +116,11 @@ chmod +x scripts/*.sh
 Interactive mode keeps the CLI session open so you can have a conversation with the agent:
 
 ```bash
-# Run planning agent interactively
+# Run unified agent interactively (Recommended)
 python scripts/run_agents.py -a designer -w /path/to/project -i
 
-# Run implementation agent interactively
-python scripts/run_agents.py -a designer -w /path/to/project -i -t impl
+# Run legacy implementation agent interactively
+python scripts/run_agents.py -a designer -w /path/to/project -i --legacy -t impl
 ```
 
 ### Single Agent (Bash)
