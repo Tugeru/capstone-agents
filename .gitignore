@@ -3,3 +3,8 @@ capstone-agents-implementation-plan.md
 
 #commit message convention docs guide
 conventional-commits-cheatsheet.md
+
+# Python
+__pycache__/
+*.pyc
+
