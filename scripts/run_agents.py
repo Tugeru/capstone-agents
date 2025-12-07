@@ -27,6 +27,15 @@ except ImportError:
 # Path to the capstone-agents repository (where agent definitions live)
 CAPSTONE_AGENTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Import multi-agent context generator
+try:
+    from generate_context import get_multi_agent_context
+except ImportError:
+    # Fallback if not run from scripts dir
+    def get_multi_agent_context(workspace, agents_dir=None):
+        print("Warning: generate_context.py not found, multi-agent mode unavailable.")
+        return None
+
 
 def read_agent_file(agent_file):
     """Read and return the content of an agent file."""
@@ -87,11 +96,57 @@ def copy_to_clipboard(text):
         return False
 
 
-def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, auto_approve=False):
-    """Run an agent in interactive mode - gives you full control of the CLI."""
+def get_agent_context(context_mode, agent_name, agent_file, workspace, agents_dir):
+    """
+    Get the agent context based on the context mode.
+    
+    Args:
+        context_mode: 'single' or 'multi'
+        agent_name: Name of the requested agent
+        agent_file: Path to the specific agent file
+        workspace: Path to the workspace
+        agents_dir: Path to agents directory
+    
+    Returns:
+        tuple: (context_string, is_multi_agent)
+    """
+    if context_mode == 'multi':
+        multi_context = get_multi_agent_context(workspace, agents_dir)
+        if multi_context:
+            return multi_context, True
+        else:
+            print(f"Warning: Multi-agent context generation failed, falling back to single agent.")
+    
+    # Single agent mode (or fallback)
+    agent_content = read_agent_file(agent_file)
+    if agent_content:
+        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
+
+{agent_content}
+
+---
+You are now the {agent_name} agent. Working directory: {workspace}
+Begin your workflow."""
+        return prompt, False
+    return None, False
+
+
+def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, context_mode, agents_dir, auto_approve=False):
+    """Run an agent in interactive mode - gives you full control of the CLI.
+    
+    Args:
+        agent_name: Name of the agent
+        agent_file: Path to the agent file
+        cli_tool: CLI tool to use
+        workspace: Path to workspace
+        context_mode: 'single' or 'multi'
+        agents_dir: Path to agents directory
+        auto_approve: Whether to auto-approve actions
+    """
     print(f"[{agent_name}] Launching interactive session...")
     print(f"[{agent_name}] Workspace: {workspace}")
     print(f"[{agent_name}] Agent: {agent_file}")
+    print(f"[{agent_name}] Context Mode: {context_mode}")
     print("-" * 60)
     
     # Verify agent file exists
@@ -99,43 +154,27 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, auto_appr
         print(f"[{agent_name}] Agent file not found: {agent_file}")
         return
     
+    # Get agent context based on mode
+    context, is_multi = get_agent_context(context_mode, agent_name, agent_file, workspace, agents_dir)
+    if not context:
+        print(f"[{agent_name}] Failed to load agent context.")
+        return
+    
+    if is_multi:
+        print(f"[{agent_name}] Loaded multi-agent context (use @triggers to switch agents)")
+    else:
+        print(f"[{agent_name}] Loaded single agent context")
+    
     cmd = []
     
     if cli_tool == "gemini":
         # Gemini CLI: interactive mode with agent context
-        # Note: Gemini can only read files within the workspace, so we pass agent content directly
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
-        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Begin your workflow."""
-        cmd = ["gemini", "-i", prompt]
+        cmd = ["gemini", "-i", context]
         
     elif cli_tool == "cursor":
         # Cursor Agent CLI (cursor-agent command)
-        # Note: cursor-agent is a TUI tool without headless mode
         # We copy agent instructions to clipboard for easy pasting
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
-        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Begin your workflow."""
-        
-        clipboard_success = copy_to_clipboard(prompt)
+        clipboard_success = copy_to_clipboard(context)
         
         print(f"[{agent_name}] Starting cursor-agent...")
         if clipboard_success:
@@ -148,57 +187,43 @@ Begin your workflow."""
         
         os.chdir(workspace)
         try:
-            # execvp replaces this process entirely - gives cursor-agent full terminal control
             os.execvp("cursor-agent", ["cursor-agent"])
         except FileNotFoundError:
             print(f"[{agent_name}] cursor-agent not found. Is it installed and in PATH?")
             print(f"[{agent_name}] Install with: npm install -g cursor-agent")
         except Exception as e:
             print(f"[{agent_name}] Failed to start cursor-agent: {e}")
-        return  # Only reached if execvp fails
+        return
         
     elif cli_tool == "cursor-ide":
         # Cursor IDE: open the workspace (not CLI)
+        # Copy context to clipboard for pasting
+        clipboard_success = copy_to_clipboard(context)
+        if clipboard_success:
+            print(f"[{agent_name}] Agent instructions copied to clipboard!")
         cmd = ["cursor", workspace]
         print(f"[{agent_name}] Cursor IDE will open. Use Ctrl+I to open Composer.")
-        print(f"[{agent_name}] Paste the agent instructions from: {agent_file}")
+        print(f"[{agent_name}] Paste the agent instructions (already in clipboard).")
         
     elif cli_tool == "codex":
         # OpenAI Codex CLI
-        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from: {agent_file}"
-        cmd = ["codex", prompt]
+        cmd = ["codex", context]
         
     elif cli_tool == "claude":
         # Claude CLI
-        prompt = f"You are an AI agent working in: {workspace}. Read and follow the agent instructions from: {agent_file}"
-        cmd = ["claude", prompt]
+        cmd = ["claude", context]
         
     elif cli_tool == "copilot-cli":
-        # GitHub Copilot CLI (npm @github/copilot)
-        # Read agent content to pass as initial context
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
+        # GitHub Copilot CLI
         print(f"[{agent_name}] Starting GitHub Copilot CLI session...")
         if sys.platform == "win32":
             print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
-        
-        # Pass agent instructions as initial prompt
-        initial_prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Confirm your role briefly."""
         
         # Step 1: Initialize agent context with one-shot prompt
         print(f"[{agent_name}] Initializing agent context...")
         try:
             subprocess.run(
-                ["copilot", "-p", initial_prompt],
+                ["copilot", "-p", context],
                 cwd=workspace,
                 stdin=sys.stdin,
                 stdout=sys.stdout,
@@ -220,28 +245,12 @@ Confirm your role briefly."""
         
     elif cli_tool == "rovodev":
         # RovoDev CLI: interactive mode
-        # Note: RovoDev needs direct terminal access, so we use execvp like cursor-agent
-        # We copy agent instructions to clipboard for easy pasting
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
         print(f"[{agent_name}] Starting RovoDev CLI session...")
         if sys.platform == "win32":
             print(f"[{agent_name}] Note: Windows PowerShell support is experimental. WSL recommended.")
         
-        # Prepare agent instructions for manual pasting
-        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Begin your workflow."""
-        
         # Copy to clipboard for easy pasting
-        clipboard_success = copy_to_clipboard(prompt)
+        clipboard_success = copy_to_clipboard(context)
         
         print(f"[{agent_name}] Starting RovoDev CLI...")
         if clipboard_success:
@@ -249,45 +258,32 @@ Begin your workflow."""
             print(f"[{agent_name}] >>> Paste with Ctrl+V (or Cmd+V) in the RovoDev prompt")
         else:
             print(f"[{agent_name}] Could not copy to clipboard. Manual load:")
-            print(f"[{agent_name}]     {prompt[:200]}...")
+            print(f"[{agent_name}]     {context[:200]}...")
         print("-" * 60)
         
         os.chdir(workspace)
         try:
-            # execvp replaces this process entirely - gives RovoDev full terminal control
             os.execvp("acli", ["acli", "rovodev", "run"])
         except FileNotFoundError:
             print(f"[{agent_name}] acli not found. Is it installed and in PATH?")
             print(f"[{agent_name}] Install with: npm install -g @atlassian/rovo-dev-cli")
         except Exception as e:
             print(f"[{agent_name}] Failed to start RovoDev: {e}")
-        return  # Only reached if execvp fails
+        return
         
     elif cli_tool == "vscode":
-        # VS Code: open workspace and show instructions
+        # VS Code: open workspace and copy to clipboard
+        clipboard_success = copy_to_clipboard(context)
         print(f"[{agent_name}] === VS Code Copilot Instructions ===")
+        if clipboard_success:
+            print(f"[{agent_name}] Agent instructions copied to clipboard!")
         print(f"[{agent_name}] 1. Open Copilot Chat (Ctrl+Shift+I)")
-        print(f"[{agent_name}] 2. Paste the agent file content from:")
-        print(f"[{agent_name}]    {agent_file}")
-        print(f"[{agent_name}] 3. Or use @workspace with the agent instructions")
+        print(f"[{agent_name}] 2. Paste the agent instructions (Ctrl+V)")
         cmd = ["code", workspace]
         
     elif cli_tool == "antigravity":
         # Antigravity IDE: Prepare prompt for user to paste
-        agent_content = read_agent_file(agent_file)
-        if agent_content is None:
-            print(f"[{agent_name}] Failed to read agent file.")
-            return
-        
-        prompt = f"""You are now acting as the following agent. Read and internalize these instructions:
-
-{agent_content}
-
----
-You are now the {agent_name} agent. Working directory: {workspace}
-Begin your workflow."""
-        
-        clipboard_success = copy_to_clipboard(prompt)
+        clipboard_success = copy_to_clipboard(context)
         
         print(f"[{agent_name}] === Antigravity IDE Instructions ===")
         if clipboard_success:
@@ -297,50 +293,16 @@ Begin your workflow."""
             print(f"[{agent_name}] Could not copy to clipboard.")
             print(f"[{agent_name}] Manually copy instructions from: {agent_file}")
         print("-" * 60)
-        print(f"Tip: For multi-agent import, run:")
-        print(f"  python Integration/antigravity/generate_context.py -w {workspace}")
+        if not is_multi:
+            print(f"Tip: Use --context-mode multi for full @-mention support")
         return
 
     elif cli_tool == "qwen":
         # Qwen CLI: interactive mode
-        # We can either run a single agent or a full context.
-        # For this integration, we'll generate the full context on the fly if it's the coordinator,
-        # otherwise just the single agent file.
-        
         print(f"[{agent_name}] Starting Qwen CLI session...")
-        
-        # Check if we should load full context (enabled by default for interactive to support @-mentions)
-        # Note: In a real scenario, might want a flag for this. For now, we'll try to use the generator.
-        try:
-            # Try to find the generate_context script relative to this script
-            script_dir = os.path.dirname(os.path.abspath(__file__)) # d:\capstone-agents\scripts
-            gen_script = os.path.join(os.path.dirname(script_dir), "Integration", "qwencli", "generate_context.py")
-            
-            if os.path.exists(gen_script):
-                print(f"[{agent_name}] Generating multi-agent context...")
-                # Run generation script and capture output
-                result = subprocess.run(
-                    [sys.executable, gen_script, "-w", workspace],
-                    capture_output=True,
-                    text=True,
-                    check=True
-                )
-                system_prompt = result.stdout
-            else:
-                # Fallback to single agent file
-                print(f"[{agent_name}] Context generator not found, using single agent file.")
-                system_prompt = read_agent_file(agent_file)
-        except Exception as e:
-            print(f"[{agent_name}] Context generation failed ({e}), falling back to single agent.")
-            system_prompt = read_agent_file(agent_file)
-
-        if not system_prompt:
-             print(f"[{agent_name}] Failed to generate system prompt.")
-             return
-
         # Qwen CLI chat mode
         # Based on help: -i/--prompt-interactive Execute the provided prompt and continue in interactive mode
-        cmd = ["qwen", "-i", system_prompt]
+        cmd = ["qwen", "-i", context]
         
     else:
         print(f"[{agent_name}] CLI '{cli_tool}' not supported for interactive mode.")
@@ -536,6 +498,8 @@ Examples:
                         help="Custom path to agents directory")
     parser.add_argument("--legacy", action="store_true",
                         help="Use legacy split agents (planning/implementation) instead of unified agents")
+    parser.add_argument("--context-mode", choices=["single", "multi"],
+                        help="Context mode: 'single' (focused agent) or 'multi' (all agents with @-mentions). Default: multi for interactive, single for batch.")
     
     args = parser.parse_args()
     
@@ -589,8 +553,15 @@ Examples:
     print(f"Mode: {'interactive' if args.interactive else 'batch'}")
     print("=" * 60)
     
+    # Determine context mode (default: multi for interactive, single for batch)
+    if args.context_mode:
+        context_mode = args.context_mode
+    else:
+        context_mode = 'multi' if args.interactive else 'single'
+    print(f"Context: {context_mode}")
+    
     if args.interactive:
-        run_agent_interactive(agent_name, agent_file, args.cli, workspace, args.auto_approve)
+        run_agent_interactive(agent_name, agent_file, args.cli, workspace, context_mode, agents_dir, args.auto_approve)
     else:
         run_agent_batch(agent_name, agent_file, args.cli, workspace, args.auto_approve)
 
