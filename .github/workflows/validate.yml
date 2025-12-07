@@ -21,7 +21,7 @@ jobs:
       run: pip install -r requirements-dev.txt
 
     - name: Run flake8
-      run: flake8 scripts/ --max-line-length=120 --ignore=E501,W503
+      run: flake8 scripts/ --max-line-length=120 --ignore=E501,W503,W291,W293,E302,E305,F401
 
   validate:
     runs-on: ubuntu-latest

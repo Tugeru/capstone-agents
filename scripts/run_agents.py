@@ -57,9 +57,9 @@ def cleanup_process(p):
             try:
                 p.kill()
                 p.wait()
-            except:
+            except Exception:
                 pass
-        except:
+        except Exception:
             pass
 
 
@@ -115,7 +115,7 @@ def get_agent_context(context_mode, agent_name, agent_file, workspace, agents_di
         if multi_context:
             return multi_context, True
         else:
-            print(f"Warning: Multi-agent context generation failed, falling back to single agent.")
+            print("Warning: Multi-agent context generation failed, falling back to single agent.")
     
     # Single agent mode (or fallback)
     agent_content = read_agent_file(agent_file)
@@ -297,7 +297,7 @@ def run_agent_interactive(agent_name, agent_file, cli_tool, workspace, context_m
             print(f"[{agent_name}] Manually copy instructions from: {agent_file}")
         print("-" * 60)
         if not is_multi:
-            print(f"Tip: Use --context-mode multi for full @-mention support")
+            print("Tip: Use --context-mode multi for full @-mention support")
         return
 
     elif cli_tool == "qwen":
