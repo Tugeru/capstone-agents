@@ -300,6 +300,47 @@ Begin your workflow."""
         print(f"Tip: For multi-agent import, run:")
         print(f"  python Integration/antigravity/generate_context.py -w {workspace}")
         return
+
+    elif cli_tool == "qwen":
+        # Qwen CLI: interactive mode
+        # We can either run a single agent or a full context.
+        # For this integration, we'll generate the full context on the fly if it's the coordinator,
+        # otherwise just the single agent file.
+        
+        print(f"[{agent_name}] Starting Qwen CLI session...")
+        
+        # Check if we should load full context (enabled by default for interactive to support @-mentions)
+        # Note: In a real scenario, might want a flag for this. For now, we'll try to use the generator.
+        try:
+            # Try to find the generate_context script relative to this script
+            script_dir = os.path.dirname(os.path.abspath(__file__)) # d:\capstone-agents\scripts
+            gen_script = os.path.join(os.path.dirname(script_dir), "Integration", "qwencli", "generate_context.py")
+            
+            if os.path.exists(gen_script):
+                print(f"[{agent_name}] Generating multi-agent context...")
+                # Run generation script and capture output
+                result = subprocess.run(
+                    [sys.executable, gen_script, "-w", workspace],
+                    capture_output=True,
+                    text=True,
+                    check=True
+                )
+                system_prompt = result.stdout
+            else:
+                # Fallback to single agent file
+                print(f"[{agent_name}] Context generator not found, using single agent file.")
+                system_prompt = read_agent_file(agent_file)
+        except Exception as e:
+            print(f"[{agent_name}] Context generation failed ({e}), falling back to single agent.")
+            system_prompt = read_agent_file(agent_file)
+
+        if not system_prompt:
+             print(f"[{agent_name}] Failed to generate system prompt.")
+             return
+
+        # Qwen CLI chat mode
+        # Based on help: -i/--prompt-interactive Execute the provided prompt and continue in interactive mode
+        cmd = ["qwen", "-i", system_prompt]
         
     else:
         print(f"[{agent_name}] CLI '{cli_tool}' not supported for interactive mode.")
@@ -368,7 +409,15 @@ def run_agent_batch(agent_name, agent_file, cli_tool, workspace, auto_approve=Fa
 You are now the {agent_name} agent. Working directory: {workspace}
 Begin your workflow."""
         cmd = ["acli", "rovodev", "run", initial_prompt]
+        cmd = ["acli", "rovodev", "run", initial_prompt]
         # Workspace is set via cwd parameter in subprocess.Popen()
+
+    elif cli_tool == "qwen":
+        # Qwen CLI: batch mode
+        # Usage: qwen [query..]
+        # We combine agent content and instruction
+        full_query = f"{agent_content}\n\nBegin your workflow suitable for a batch execution context."
+        cmd = ["qwen", full_query]
         
     elif cli_tool == "test":
         # Test mode: just echo what would run
@@ -470,7 +519,7 @@ Examples:
     parser.add_argument("-w", "--workspace", default=".", 
                         help="Path to YOUR project workspace (where the agent will work)")
     parser.add_argument("-c", "--cli", default="gemini", 
-                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "rovodev", "antigravity", "test"],
+                        choices=["gemini", "cursor", "cursor-ide", "codex", "claude", "copilot-cli", "vscode", "rovodev", "antigravity", "qwen", "test"],
                         help="CLI tool to use (default: gemini)")
     parser.add_argument("-a", "--agent", 
                         help="Agent to run (e.g., designer, frontend, backend, coordinator)")

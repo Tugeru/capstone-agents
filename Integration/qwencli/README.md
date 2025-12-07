@@ -5,10 +5,9 @@ This guide explains how to use Capstone Agents with [QwenCLI](https://github.com
 ## Prerequisites
 
 1. **Install QwenCLI**:
+   Ensure `qwen` is in your PATH.
    ```bash
    pip install qwen-cli
-   # or
-   pip install dashscope  # For DashScope API access
    ```
 
 2. **Configure API Key**:
@@ -20,48 +19,44 @@ This guide explains how to use Capstone Agents with [QwenCLI](https://github.com
 
 ## Usage
 
-### Running Agents via Python Script
+### Interactive Mode (Supports @-mentions)
+
+The interactive mode loads a consolidated context of all agents, allowing you to invoke them dynamically using `@` triggers (e.g., `@frontend`, `@backend implementation`).
 
 ```bash
-# Navigate to your workspace
-cd /path/to/your/project
+# Start an interactive session with Qwen
+python scripts/run_agents.py -a coordinator -c qwen -w /path/to/your/project -i
+```
+*Internally this runs `qwen -i "System Prompt..."`*
 
-# Planning session with coordinator (planning agent)
-python scripts/run_agents.py -a coordinator -c qwen -w /path/to/your/project -i -t p
-
-# Implementation session with frontend (implementation agent)
-python scripts/run_agents.py -a frontend -c qwen -w /path/to/your/project -i -t impl
+Once inside the chat:
+```text
+User: @frontend implementation Create a React component for the login form.
+Qwen: (Adopts frontend implementation persona) Certainly. Here is the React component...
 ```
 
-### Direct QwenCLI Usage
+### Batch Mode
+
+Batch mode executes a single agent with a specific task and exits.
 
 ```bash
-# Interactive chat with agent context
-qwen chat --system-prompt "$(cat agents/coordinator/coordinator.md)"
+# Run the frontend agent to create a plan
+python scripts/run_agents.py -a frontend -c qwen -w /path/to/your/project -t p
+```
+*Internally this runs `qwen "Agent Instructions..."`*
 
-# Single-shot task execution
-qwen run --system "$(cat agents/frontend/frontend-planning.md)" \
-  --query "Analyze the project and create a frontend plan"
+## Advanced: Manual Context Generation
+
+If you want to generate the system prompt manually for use with other tools or specific Qwen configurations:
+
+```bash
+python Integration/qwencli/generate_context.py -w /path/to/your/project -o qwen_context.md
 ```
 
-## Agent Workflow with Qwen
-
-### Step 1: Project Initialization
+Then use it with `qwen-cli`:
 
 ```bash
-qwen chat \
-  --system-prompt "$(cat agents/coordinator/coordinator.md)" \
-  --query "Review the project in the current directory and create a task breakdown"
-```
-
-### Step 2: Planning Phase
-
-```bash
-# Frontend Planning
-qwen run \
-  --system "$(cat agents/frontend/frontend-planning.md)" \
-  --query "Create a detailed frontend implementation plan" \
-  > frontend-plan.json
+qwen -i "$(cat qwen_context.md)"
 ```
 
 ## Model Selection
@@ -71,13 +66,3 @@ qwen run \
 | qwen-turbo | Quick tasks, simple code | Fast | Low |
 | qwen-plus | Balanced performance | Medium | Medium |
 | qwen-max | Complex reasoning, architecture | Slow | High |
-
-## Troubleshooting
-
-### "DashScope API key not found"
-```bash
-export DASHSCOPE_API_KEY=sk-xxxxxxxx
-```
-
-### Connection Timeout
-Qwen servers are hosted in China; use a stable connection.
